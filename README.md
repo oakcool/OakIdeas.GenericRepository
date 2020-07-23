@@ -1,4 +1,4 @@
-# OakIdeas GenericRepository
+# GenericRepository
 A very simple and generic implementation of the repository pattern for CRUD operations.
 
 ## "Features"
