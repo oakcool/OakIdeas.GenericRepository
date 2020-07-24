@@ -30,7 +30,7 @@ jobs:
 
     - name: Publish nuget package
       run: |
-        for pkg in ./nupkg/*.nupkg
+        for pkg in *.nupkg
           do
             dotnet nuget push @$pkg -k $nuget_api_key -s "https://api.nuget.org/v3/index.json" --skip-duplicate
           done  
