@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OakIdeas.GenericRepository"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OakIdeas.GenericRepository.Tests", "OakIdeas.GenericRepository.Tests\OakIdeas.GenericRepository.Tests.csproj", "{473D1E8F-54C6-4979-BAD7-751CF6BDF7A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakIdeas.GenericRepository.EntityFrameworkCore", "OakIdeas.GenericRepository.EntityFrameworkCore\OakIdeas.GenericRepository.EntityFrameworkCore.csproj", "{6E55C6D0-A483-4043-AA0B-F46F3C568455}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakIdeas.GenericRepository.EntityFrameworkCore.Tests", "OakIdeas.GenericRepository.EntityFrameworkCore.Tests\OakIdeas.GenericRepository.EntityFrameworkCore.Tests.csproj", "{7A082DB6-13A9-4812-9F03-CD70D846B260}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{473D1E8F-54C6-4979-BAD7-751CF6BDF7A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{473D1E8F-54C6-4979-BAD7-751CF6BDF7A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{473D1E8F-54C6-4979-BAD7-751CF6BDF7A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E55C6D0-A483-4043-AA0B-F46F3C568455}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E55C6D0-A483-4043-AA0B-F46F3C568455}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E55C6D0-A483-4043-AA0B-F46F3C568455}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E55C6D0-A483-4043-AA0B-F46F3C568455}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A082DB6-13A9-4812-9F03-CD70D846B260}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A082DB6-13A9-4812-9F03-CD70D846B260}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A082DB6-13A9-4812-9F03-CD70D846B260}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A082DB6-13A9-4812-9F03-CD70D846B260}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

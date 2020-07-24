@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.5-alpha</Version>
+    <Authors>Mateus Carvalho</Authors>
+    <Company>OakIdeas</Company>
+    <Description>A very simple and generic implementation of the repository pattern for CRUD operations.</Description>
+    <Copyright>OakIdeas</Copyright>
+    <PackageProjectUrl>https://github.com/oakcool/OakIdeas.GenericRepository</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository.git</RepositoryUrl>
+    <PackageTags>repositorypattern, repository, data, EntityFrameworkCore</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageReleaseNotes>      
+      - EntityFrameworkCore Repository      
+    </PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.6" />
+    <PackageReference Include="OakIdeas.GenericRepository" Version="0.0.5-alpha" />
+  </ItemGroup>
+
+</Project>
