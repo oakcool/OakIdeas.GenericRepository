@@ -29,7 +29,11 @@ jobs:
       working-directory: ./src
 
     - name: Publish nuget package
-      run: dotnet nuget push *.nupkg -k $nuget_api_key -s "https://api.nuget.org/v3/index.json" --skip-duplicate
+      run: |
+        for pkg in ./nupkg/*.nupkg
+          do
+            dotnet nuget push @$pkg -k $nuget_api_key -s "https://api.nuget.org/v3/index.json" --skip-duplicate
+          done  
       env:
         nuget_api_key: ${{ secrets.NUGET_API_KEY }}
       working-directory: ./src/nupkg
