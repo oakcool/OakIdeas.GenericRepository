@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OakIdeas.GenericRepository", "OakIdeas.GenericRepository\OakIdeas.GenericRepository.csproj", "{9D5CF27D-9D66-49B8-B49E-925A691C6134}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6AB4853D-31CF-4F28-9C0E-D288E979EB45}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OakIdeas.GenericRepository.Tests", "OakIdeas.GenericRepository.Tests\OakIdeas.GenericRepository.Tests.csproj", "{473D1E8F-54C6-4979-BAD7-751CF6BDF7A9}"
 EndProject
 Global
