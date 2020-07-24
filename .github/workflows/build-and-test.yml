@@ -2,7 +2,7 @@ name: OakIdeas.GenericRepository - Build & Test
 
 on: 
   push:
-    branches-ignore:
+    branches:
       - master
 jobs:
   build-and-test:
