@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.0.5-alpha</Version>
+    <Version>0.0.5.1-alpha</Version>
     <Authors>Mateus Carvalho</Authors>
     <Company>OakIdeas</Company>
     <Description>A very simple and generic implementation of the repository pattern for CRUD operations.</Description>
@@ -17,9 +17,15 @@
     <PackageReleaseNotes>- Generic interface
 - EntityBase
 - Memory Repository (Dictionary based)</PackageReleaseNotes>
+    <PackageIcon>oakideasnew.png</PackageIcon>
+    <AssemblyVersion>0.0.5.1</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\Images\oakideasnew.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
