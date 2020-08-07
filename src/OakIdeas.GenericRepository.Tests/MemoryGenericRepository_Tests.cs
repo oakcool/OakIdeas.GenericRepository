@@ -24,6 +24,7 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			var repository = new MemoryGenericRepository<Customer>();
 			var newEntity = await repository.Insert(new Customer() { Name = _entityDefaultName });
+			await repository.Save();
 			var existing = await repository.Insert(newEntity);
 			Assert.IsTrue(newEntity == existing);
 		}
@@ -41,6 +42,7 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			var repository = new MemoryGenericRepository<Customer>();
 			var newEntity = await repository.Insert(new Customer() { Name = _entityDefaultName });
+			await repository.Save();
 			var existing = await repository.Get(newEntity.ID);
 			Assert.IsNotNull(existing);
 		}
@@ -60,6 +62,7 @@ namespace OakIdeas.GenericRepository.Tests
 			var repository = new MemoryGenericRepository<Customer>();
 			var newEntity = await repository.Insert(new Customer() { Name = _entityNewName });
 			var defaultEntity = await repository.Insert(new Customer() { Name = _entityDefaultName });
+			await repository.Save();
 			var ordered = await repository.Get(orderBy: (x => x.OrderBy(c => c.Name)));
 			Assert.IsNotNull(ordered.First(c => c.Name == _entityDefaultName));
 		}
@@ -70,6 +73,7 @@ namespace OakIdeas.GenericRepository.Tests
 
 			var repository = new MemoryGenericRepository<Customer>();
 			var newEntity = await repository.Insert(new Customer() { Name = _entityDefaultName });
+			await repository.Save();
 			var existing = await repository.Get(newEntity.ID);
 			existing.Name = _entityNewName;
 			await repository.Update(existing);

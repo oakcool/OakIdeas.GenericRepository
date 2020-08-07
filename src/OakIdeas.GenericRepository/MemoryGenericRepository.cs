@@ -11,10 +11,16 @@ namespace OakIdeas.GenericRepository
 	public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : EntityBase
 	{
 		readonly Dictionary<int, TEntity> _data;
+		readonly Dictionary<int, TEntity> _addData;
+		readonly Dictionary<int, TEntity> _deleteData;
+		readonly Dictionary<int, TEntity> _updateData;
 
 		public MemoryGenericRepository()
 		{
 			_data = new Dictionary<int, TEntity>();
+			_addData = new Dictionary<int, TEntity>();
+			_deleteData = new Dictionary<int, TEntity>();
+			_updateData = new Dictionary<int, TEntity>();
 		}
 
 		public async Task<bool> Delete(TEntity entityToDelete)
@@ -23,7 +29,7 @@ namespace OakIdeas.GenericRepository
 			{
 				if (_data.TryGetValue(entityToDelete.ID, out TEntity exiting))
 				{
-					_data.Remove(entityToDelete.ID);
+					_deleteData.Add(entityToDelete.ID, entityToDelete);
 				}
 
 				return true;
@@ -36,7 +42,7 @@ namespace OakIdeas.GenericRepository
 			{
 				if (id is int @int && _data.TryGetValue(@int, out TEntity exiting))
 				{
-					_data.Remove(@int);
+					_deleteData.Add(@int, exiting);
 				}
 
 				return true;
@@ -48,7 +54,7 @@ namespace OakIdeas.GenericRepository
 			return await Task.Run(() =>
 			{
 				try
-				{					
+				{
 					IQueryable<TEntity> query = _data.Values.AsQueryable<TEntity>();
 
 					// Apply the filter
@@ -101,7 +107,7 @@ namespace OakIdeas.GenericRepository
 			}
 			else
 			{
-				_data.Add(entity.ID, entity);
+				_addData.Add(entity.ID, entity);
 				return entity;
 			}
 		}
@@ -112,11 +118,50 @@ namespace OakIdeas.GenericRepository
 			{
 				if (_data.TryGetValue(entityToUpdate.ID, out TEntity exiting))
 				{
-					_data[entityToUpdate.ID] = entityToUpdate;
+
+					if (_updateData.TryGetValue(entityToUpdate.ID, out TEntity alreadyUpdated))
+					{
+						_updateData[entityToUpdate.ID] = exiting;
+					}
+					else
+					{
+						_updateData.Add(entityToUpdate.ID, entityToUpdate);
+					}
 				}
 
 				return entityToUpdate;
 			});
+		}
+
+		public async Task<int> Save()
+		{
+			int total = 0;
+			await Task.Factory.StartNew(() =>
+			{				
+				foreach (var entity in _addData.Values)
+				{
+					_data.Add(entity.ID, entity);
+					total++;
+				}
+				Task.Factory.StartNew( () =>
+				{
+					foreach (var entity in _updateData.Values)
+					{
+						_data[entity.ID] = entity;
+						total++;
+					}
+
+					Task.Factory.StartNew(() =>
+					{
+						foreach (var entity in _deleteData.Values)
+						{
+							_data.Remove(entity.ID);
+							total++;
+						}
+					},  TaskCreationOptions.AttachedToParent);
+				}, TaskCreationOptions.AttachedToParent);
+			});
+			return total;
 		}
 
 		protected async Task<int> GetNextID()
@@ -124,10 +169,13 @@ namespace OakIdeas.GenericRepository
 			return await Task.Run(() =>
 			{
 				int next = 1;
-				if (_data.Count() > 0)
+				if (_addData.Count() > 0)
+				{
+					next = _addData.Keys.Max(k => k) + 1;
+				} else  if (_data.Count() > 0)
 				{
 					next = _data.Keys.Max(k => k) + 1;
-				}
+				}				
 				return next;
 			});
 		}

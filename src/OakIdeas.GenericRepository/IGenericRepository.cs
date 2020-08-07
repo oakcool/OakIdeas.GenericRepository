@@ -17,5 +17,6 @@ namespace OakIdeas.GenericRepository
         Task<TEntity> Get(object id);
         Task<TEntity> Insert(TEntity entity);
         Task<TEntity> Update(TEntity entityToUpdate);
+        Task<int> Save();
     }
 }
