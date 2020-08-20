@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OakIdeas.GenericRepository.EntityFrameworkCore
 {
-	public class EntityFrameworkCoreRepository<TEntity, TDataContext> : IGenericRepository<TEntity> where TEntity : EntityBase where TDataContext : DbContext
+	public class EntityFrameworkCoreRepository<TEntity, TDataContext> : IGenericRepository<TEntity> where TEntity : class where TDataContext : DbContext
     {
         protected readonly TDataContext context;
         internal DbSet<TEntity> dbSet;
