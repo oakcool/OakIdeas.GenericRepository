@@ -32,7 +32,7 @@ jobs:
       run: |
         for pkg in *.nupkg
           do
-            dotnet nuget push $pkg -k $nuget_api_key -s "https://api.nuget.org/v3/index.json"
+            dotnet nuget push $pkg -k $nuget_api_key -s "https://api.nuget.org/v3/index.json" --skip-duplicate
           done  
       env:
         nuget_api_key: ${{ secrets.NUGET_API_KEY }}
