@@ -1,4 +1,5 @@
 # GenericRepository
+![OakIdeas.GenericRepository - Deploy](https://github.com/oakcool/OakIdeas.GenericRepository/workflows/OakIdeas.GenericRepository%20-%20Deploy/badge.svg)
 A very simple and generic implementation of the repository pattern for CRUD operations.
 
 ## "Features"
