@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OakIdeas.GenericRepository.EntityFrameworkCore;
@@ -31,11 +32,13 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
     /// <param name="filter">Optional LINQ filter expression</param>
     /// <param name="orderBy">Optional ordering function</param>
     /// <param name="includeProperties">Comma-separated list of navigation properties to include</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>Collection of entities matching the criteria</returns>
     public virtual async Task<IEnumerable<TEntity>> Get(
         Expression<Func<TEntity, bool>>? filter = null,
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
-        string includeProperties = "")
+        string includeProperties = "",
+        CancellationToken cancellationToken = default)
     {
         // Get the dbSet from the Entity passed in                
         IQueryable<TEntity> query = dbSet;
@@ -52,35 +55,40 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
             query = query.Include(includeProperty);
         }
 
-        // Sort
-        return orderBy is not null 
-            ? orderBy(query).ToList() 
-            : await query.ToListAsync();
+        // Sort and return
+        if (orderBy is not null)
+        {
+            return await orderBy(query).ToListAsync(cancellationToken);
+        }
+        
+        return await query.ToListAsync(cancellationToken);
     }
 
     /// <summary>
     /// Gets an entity by its primary key.
     /// </summary>
     /// <param name="id">The primary key value</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>The entity if found, null otherwise</returns>
-    public virtual async Task<TEntity?> Get(TKey id)
+    public virtual async Task<TEntity?> Get(TKey id, CancellationToken cancellationToken = default)
     {
         ThrowIfNull(id);
 
-        return await dbSet.FindAsync(id);
+        return await dbSet.FindAsync(new object[] { id }, cancellationToken);
     }
 
     /// <summary>
     /// Inserts a new entity into the database.
     /// </summary>
     /// <param name="entity">The entity to insert</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>The inserted entity</returns>
-    public virtual async Task<TEntity> Insert(TEntity entity)
+    public virtual async Task<TEntity> Insert(TEntity entity, CancellationToken cancellationToken = default)
     {
         ThrowIfNull(entity);
 
-        await dbSet.AddAsync(entity);
-        await context.SaveChangesAsync();
+        await dbSet.AddAsync(entity, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         return entity;
     }
 
@@ -88,21 +96,23 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
     /// Deletes an entity by its primary key.
     /// </summary>
     /// <param name="id">The primary key value</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>True if deletion was successful, false otherwise</returns>
-    public virtual async Task<bool> Delete(TKey id)
+    public virtual async Task<bool> Delete(TKey id, CancellationToken cancellationToken = default)
     {
         ThrowIfNull(id);
 
-        var entityToDelete = await dbSet.FindAsync(id);
-        return await Delete(entityToDelete);
+        var entityToDelete = await dbSet.FindAsync(new object[] { id }, cancellationToken);
+        return await Delete(entityToDelete, cancellationToken);
     }
 
     /// <summary>
     /// Deletes an entity from the database.
     /// </summary>
     /// <param name="entityToDelete">The entity to delete</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>True if deletion was successful, false otherwise</returns>
-    public virtual async Task<bool> Delete(TEntity entityToDelete)
+    public virtual async Task<bool> Delete(TEntity entityToDelete, CancellationToken cancellationToken = default)
     {
         ThrowIfNull(entityToDelete);
 
@@ -111,22 +121,23 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
             dbSet.Attach(entityToDelete);
         }
         dbSet.Remove(entityToDelete);
-        return await context.SaveChangesAsync() >= 1;
+        return await context.SaveChangesAsync(cancellationToken) >= 1;
     }
 
     /// <summary>
     /// Updates an existing entity in the database.
     /// </summary>
     /// <param name="entityToUpdate">The entity to update</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>The updated entity</returns>
-    public virtual async Task<TEntity> Update(TEntity entityToUpdate)
+    public virtual async Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken = default)
     {
         ThrowIfNull(entityToUpdate);
 
         var entityDbSet = context.Set<TEntity>();
         entityDbSet.Attach(entityToUpdate);
         context.Entry(entityToUpdate).State = EntityState.Modified;
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
         return entityToUpdate;
     }
 
