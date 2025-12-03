@@ -314,6 +314,22 @@ await foreach (var customer in repository.GetAsyncEnumerable(
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+For detailed contribution guidelines, see [docs/contributing.md](docs/contributing.md).
+
+## Documentation
+
+- **[Getting Started](docs/getting-started.md)** - Quick start guide
+- **[Architecture](docs/architecture.md)** - System architecture overview
+- **[Best Practices](docs/best-practices.md)** - Recommended patterns and practices
+- **[API Reference](docs/api-reference.md)** - Detailed API documentation
+
+### For AI Assistants & Developers
+
+- **[AI Context](ai-context.md)** - Overview for AI assistants working with this codebase
+- **[Copilot Instructions](copilot-instructions.md)** - GitHub Copilot coding guidelines
+- **[AGENTS.MD](AGENTS.MD)** - Comprehensive agent capabilities and workflows
+- **[GitHub Copilot Context](.github/copilot-context.md)** - Quick reference for Copilot
+
 ## License
 
 This project is licensed under the terms specified in the LICENSE file.
