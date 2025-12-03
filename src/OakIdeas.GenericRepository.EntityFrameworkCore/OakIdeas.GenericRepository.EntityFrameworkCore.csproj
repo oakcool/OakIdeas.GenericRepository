@@ -37,7 +37,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.6" />
-    <PackageReference Include="OakIdeas.GenericRepository" Version="0.0.5-alpha" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OakIdeas.GenericRepository\OakIdeas.GenericRepository.csproj" />
   </ItemGroup>
 
 </Project>
