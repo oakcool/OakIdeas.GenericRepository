@@ -7,6 +7,8 @@ Welcome to the OakIdeas.GenericRepository documentation. This library provides a
 - [Architecture Overview](./architecture.md)
 - [Getting Started](./getting-started.md)
 - [Usage Examples](./usage-examples.md)
+- [Middleware Pattern](./middleware/README.md)
+  - [Creating Custom Middleware](./middleware/custom-middleware.md)
 - [Specification Pattern](./specification-pattern.md)
 - [Query Object Pattern](./query-object-pattern.md)
 - [Type-Safe Include Properties](./type-safe-includes.md)
@@ -22,6 +24,7 @@ Welcome to the OakIdeas.GenericRepository documentation. This library provides a
 - [GitHub Repository](https://github.com/oakcool/OakIdeas.GenericRepository)
 - [NuGet Package - Core](https://www.nuget.org/packages/OakIdeas.GenericRepository/)
 - [NuGet Package - EntityFrameworkCore](https://www.nuget.org/packages/OakIdeas.GenericRepository.EntityFrameworkCore/)
+- [NuGet Package - Middleware](https://www.nuget.org/packages/OakIdeas.GenericRepository.Middleware/)
 
 ## Overview
 
@@ -39,6 +42,7 @@ Both implementations share the same `IGenericRepository<TEntity>` interface, mak
 - Async/await support throughout
 - Thread-safe in-memory implementation
 - Entity Framework Core integration with eager loading support
+- **Middleware Pattern for extensible cross-cutting concerns**
 - **Query Object Pattern for fluent, reusable queries**
 - **Type-Safe Include Properties for compile-time safety**
 - **Specification Pattern for reusable query logic**
@@ -62,6 +66,12 @@ dotnet add package OakIdeas.GenericRepository
 
 ```bash
 dotnet add package OakIdeas.GenericRepository.EntityFrameworkCore
+```
+
+### Middleware (Optional)
+
+```bash
+dotnet add package OakIdeas.GenericRepository.Middleware
 ```
 
 ## Quick Start
