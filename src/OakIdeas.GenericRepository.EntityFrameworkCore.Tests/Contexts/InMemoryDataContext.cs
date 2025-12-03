@@ -10,6 +10,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Contexts
 	{
 		public DbSet<Customer> Customers { get; set; }
 		public DbSet<Product> Products { get; set; }
+		public DbSet<SoftDeletableCustomer> SoftDeletableCustomers { get; set; }
 
 		public InMemoryDataContext() : base()
 		{
