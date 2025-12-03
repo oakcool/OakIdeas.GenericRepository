@@ -1,27 +1,65 @@
-name: OakIdeas.GenericRepository - Build & Test
+name: Build & Test
 
 on: 
   pull_request:
     branches:
       - master
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
+        dotnet-version: [ '10.0.x' ]
+    
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - name: Setup .NET
+    - name: Setup .NET ${{ matrix.dotnet-version }}
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '10.0.x'
+        dotnet-version: ${{ matrix.dotnet-version }}
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
+
+    - name: Restore dependencies
+      run: dotnet restore
+      working-directory: ./src
 
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration Release --no-restore
       working-directory: ./src
 
     - name: Run unit tests
-      run: dotnet test --configuration Release
+      run: dotnet test --configuration Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       working-directory: ./src
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.dotnet-version }}
+        path: '**/TestResults/**/*.trx'
+        retention-days: 30
+
+    - name: Upload code coverage
+      if: matrix.os == 'ubuntu-latest' && matrix.dotnet-version == '10.0.x'
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage
+        path: '**/TestResults/**/coverage.cobertura.xml'
+        retention-days: 30
