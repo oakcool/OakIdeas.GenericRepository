@@ -144,24 +144,6 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			await repository.Delete((Customer)null);
 		}
 
-		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
-		public async Task DeleteByID_NullID_ThrowsException()
-		{
-			var context = new InMemoryDataContext();
-			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			await repository.Delete((object)null);
-		}
-
-		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
-		public async Task GetByID_NullID_ThrowsException()
-		{
-			var context = new InMemoryDataContext();
-			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			await repository.Get((object)null);
-		}
-
 		// Edge case tests
 		[TestMethod]
 		public async Task GetByID_NonExistentID_ReturnsNull()

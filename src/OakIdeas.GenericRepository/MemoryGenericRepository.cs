@@ -15,11 +15,14 @@ namespace OakIdeas.GenericRepository;
 /// Suitable for testing and development scenarios.
 /// </summary>
 /// <typeparam name="TEntity">The entity type, must inherit from EntityBase</typeparam>
-public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity>
-    where TEntity : EntityBase
+/// <typeparam name="TKey">The type of the primary key</typeparam>
+public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey>
+    where TEntity : EntityBase<TKey>
+    where TKey : notnull
 {
-    private readonly ConcurrentDictionary<int, TEntity> _data = [];
+    private readonly ConcurrentDictionary<TKey, TEntity> _data = new();
     private int _nextId = 1;
+    private static readonly bool _isIntKey = typeof(TKey) == typeof(int);
 
     /// <summary>
     /// Deletes an entity from the repository.
@@ -45,13 +48,13 @@ public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity>
     /// <param name="id">The primary key value</param>
     /// <returns>True if deletion was successful, false otherwise</returns>
     /// <exception cref="ArgumentNullException">Thrown when id is null</exception>
-    public Task<bool> Delete(object id)
+    public Task<bool> Delete(TKey id)
     {
         ThrowIfNull(id);
 
-        if (id is int intId && _data.TryGetValue(intId, out _))
+        if (_data.TryGetValue(id, out _))
         {
-            return Task.FromResult(_data.TryRemove(intId, out _));
+            return Task.FromResult(_data.TryRemove(id, out _));
         }
 
         return Task.FromResult(true);
@@ -89,19 +92,19 @@ public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity>
     /// <param name="id">The primary key value</param>
     /// <returns>The entity if found, null otherwise</returns>
     /// <exception cref="ArgumentNullException">Thrown when id is null</exception>
-    public Task<TEntity?> Get(object id)
+    public Task<TEntity?> Get(TKey id)
     {
         ThrowIfNull(id);
 
         return Task.FromResult(
-            id is int intId && _data.TryGetValue(intId, out var existing) 
+            _data.TryGetValue(id, out var existing) 
                 ? existing 
                 : null
         );
     }
 
     /// <summary>
-    /// Inserts a new entity into the repository. If the entity ID is 0, a new ID is generated.
+    /// Inserts a new entity into the repository. If the entity ID is the default value for its type, a new ID is generated (for integer keys only).
     /// </summary>
     /// <param name="entity">The entity to insert</param>
     /// <returns>The inserted entity, or the existing entity if one with the same ID already exists</returns>
@@ -110,9 +113,9 @@ public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity>
     {
         ThrowIfNull(entity);
 
-        if (entity.ID == 0)
+        if (_isIntKey && EqualityComparer<TKey>.Default.Equals(entity.ID, default!))
         {
-            entity.ID = await GetNextID();
+            entity.ID = (TKey)(object)await GetNextID();
         }
 
         if (_data.TryGetValue(entity.ID, out var existing))
@@ -145,6 +148,7 @@ public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity>
     /// <summary>
     /// Generates the next available ID for a new entity.
     /// Uses atomic increment for O(1) performance and thread safety.
+    /// Only applicable for integer keys.
     /// </summary>
     /// <returns>The next available ID</returns>
     protected Task<int> GetNextID()
@@ -161,4 +165,15 @@ public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity>
             throw new ArgumentNullException(paramName);
         }
     }
+}
+
+/// <summary>
+/// In-memory implementation of the generic repository pattern using a concurrent dictionary.
+/// Suitable for testing and development scenarios. Uses integer primary keys.
+/// Provided for backward compatibility with existing code.
+/// </summary>
+/// <typeparam name="TEntity">The entity type, must inherit from EntityBase</typeparam>
+public class MemoryGenericRepository<TEntity> : MemoryGenericRepository<TEntity, int>
+    where TEntity : EntityBase
+{
 }

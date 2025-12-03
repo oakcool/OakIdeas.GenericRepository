@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OakIdeas.GenericRepository;
 using OakIdeas.GenericRepository.Models;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,11 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore;
 /// </summary>
 /// <typeparam name="TEntity">The entity type</typeparam>
 /// <typeparam name="TDataContext">The DbContext type</typeparam>
-public class EntityFrameworkCoreRepository<TEntity, TDataContext>(TDataContext dataContext) : IGenericRepository<TEntity> 
+/// <typeparam name="TKey">The type of the primary key</typeparam>
+public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataContext dataContext) : IGenericRepository<TEntity, TKey>
     where TEntity : class 
     where TDataContext : DbContext
+    where TKey : notnull
 {
     protected readonly TDataContext context = dataContext;
     internal DbSet<TEntity> dbSet = dataContext.Set<TEntity>();
@@ -60,7 +63,7 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext>(TDataContext d
     /// </summary>
     /// <param name="id">The primary key value</param>
     /// <returns>The entity if found, null otherwise</returns>
-    public virtual async Task<TEntity?> Get(object id)
+    public virtual async Task<TEntity?> Get(TKey id)
     {
         ThrowIfNull(id);
 
@@ -86,7 +89,7 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext>(TDataContext d
     /// </summary>
     /// <param name="id">The primary key value</param>
     /// <returns>True if deletion was successful, false otherwise</returns>
-    public virtual async Task<bool> Delete(object id)
+    public virtual async Task<bool> Delete(TKey id)
     {
         ThrowIfNull(id);
 
@@ -135,4 +138,17 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext>(TDataContext d
             throw new ArgumentNullException(paramName);
         }
     }
+}
+
+/// <summary>
+/// Entity Framework Core implementation of the generic repository pattern.
+/// Provides CRUD operations with support for eager loading and LINQ queries. Uses integer primary keys.
+/// Provided for backward compatibility with existing code.
+/// </summary>
+/// <typeparam name="TEntity">The entity type</typeparam>
+/// <typeparam name="TDataContext">The DbContext type</typeparam>
+public class EntityFrameworkCoreRepository<TEntity, TDataContext>(TDataContext dataContext) : EntityFrameworkCoreRepository<TEntity, TDataContext, int>(dataContext)
+    where TEntity : class 
+    where TDataContext : DbContext
+{
 }

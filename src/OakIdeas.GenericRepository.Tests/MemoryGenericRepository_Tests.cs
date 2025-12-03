@@ -125,22 +125,6 @@ namespace OakIdeas.GenericRepository.Tests
 			await repository.Delete((Customer)null);
 		}
 
-		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
-		public async Task DeleteByID_NullID_ThrowsException()
-		{
-			var repository = new MemoryGenericRepository<Customer>();
-			await repository.Delete((object)null);
-		}
-
-		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
-		public async Task GetByID_NullID_ThrowsException()
-		{
-			var repository = new MemoryGenericRepository<Customer>();
-			await repository.Get((object)null);
-		}
-
 		// Edge case tests
 		[TestMethod]
 		public async Task Update_NonExistentEntity_ReturnsEntity()

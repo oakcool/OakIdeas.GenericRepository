@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 namespace OakIdeas.GenericRepository;
 
 /// <summary>
-/// Generic repository interface for CRUD operations on entities.
+/// Generic repository interface for CRUD operations on entities with generic primary key support.
 /// </summary>
 /// <typeparam name="TEntity">The entity type</typeparam>
-public interface IGenericRepository<TEntity> where TEntity : class
+/// <typeparam name="TKey">The type of the primary key</typeparam>
+public interface IGenericRepository<TEntity, TKey> where TEntity : class
 {
     /// <summary>
     /// Deletes an entity from the repository.
@@ -24,7 +25,7 @@ public interface IGenericRepository<TEntity> where TEntity : class
     /// </summary>
     /// <param name="id">The primary key value</param>
     /// <returns>True if deletion was successful, false otherwise</returns>
-    Task<bool> Delete(object id);
+    Task<bool> Delete(TKey id);
 
     /// <summary>
     /// Gets entities with optional filtering, ordering, and eager loading.
@@ -43,7 +44,7 @@ public interface IGenericRepository<TEntity> where TEntity : class
     /// </summary>
     /// <param name="id">The primary key value</param>
     /// <returns>The entity if found, null otherwise</returns>
-    Task<TEntity?> Get(object id);
+    Task<TEntity?> Get(TKey id);
 
     /// <summary>
     /// Inserts a new entity into the repository.
@@ -58,4 +59,13 @@ public interface IGenericRepository<TEntity> where TEntity : class
     /// <param name="entityToUpdate">The entity to update</param>
     /// <returns>The updated entity</returns>
     Task<TEntity> Update(TEntity entityToUpdate);
+}
+
+/// <summary>
+/// Generic repository interface for CRUD operations on entities with integer primary keys.
+/// Provided for backward compatibility with existing code.
+/// </summary>
+/// <typeparam name="TEntity">The entity type</typeparam>
+public interface IGenericRepository<TEntity> : IGenericRepository<TEntity, int> where TEntity : class
+{
 }
