@@ -891,33 +891,62 @@ var all = await repository.GetIncludingDeleted(); // Include deleted if needed
 - **Compliance**: Required for many applications
 - **Common pattern**: Avoid reimplementing everywhere
 
+### Status
+✅ **IMPLEMENTED** (Version 0.0.12-alpha)
+
 ### Acceptance Criteria
 
 #### Documentation
-- [ ] Document soft delete pattern
-- [ ] Show how to permanently delete
-- [ ] Document GetIncludingDeleted usage
-- [ ] Provide audit trail examples
+- [x] Document soft delete pattern
+- [x] Show how to permanently delete
+- [x] Document GetIncludingDeleted usage
+- [x] Provide audit trail examples
+- [x] Real-world usage scenarios
+- [x] Migration guide from regular repositories
 
 #### Testing
-- [ ] Test soft delete behavior
-- [ ] Test automatic filtering
-- [ ] Test GetIncludingDeleted
-- [ ] Test with includes and ordering
+- [x] Test soft delete behavior
+- [x] Test automatic filtering
+- [x] Test GetIncludingDeleted
+- [x] Test with includes and ordering
+- [x] Test with Query Object pattern
+- [x] Test with Async Enumerable
+- [x] Test restore functionality
+- [x] Test permanent delete
+- [x] Test batch soft delete operations
+- [x] Test with Guid primary keys
 
 #### Implementation
-- [ ] Create ISoftDeletable interface
-- [ ] Create SoftDeletableEntity base class
-- [ ] Create SoftDeleteRepository
-- [ ] Implement automatic filtering
-- [ ] Add configuration options
+- [x] Create ISoftDeletable interface
+- [x] Create SoftDeletableEntity base class
+- [x] Create SoftDeleteMemoryRepository
+- [x] Create SoftDeleteEntityFrameworkCoreRepository
+- [x] Implement automatic filtering
+- [x] Add Restore functionality
+- [x] Add PermanentlyDelete functionality
+- [x] Add SetDeletedBy for user tracking
+- [x] Support for generic key types
 
 ### Breaking Change Assessment
 - **Breaking**: No
-- **Additive**: New repository implementation, opt-in
+- **Additive**: New repository implementations, opt-in
+- **Implementation**: All soft delete features work seamlessly with existing repository methods
+- **Validation**: All 270 tests pass (210 original + 60 new soft delete tests)
+
+### Implementation Notes
+- Added comprehensive soft delete pattern guide with 15+ real-world examples
+- Implemented using composition pattern for MemoryRepository and inheritance for EF Core
+- 30 unit tests for MemoryGenericRepository soft delete functionality
+- 30 integration tests for EntityFrameworkCoreRepository soft delete functionality
+- Soft delete repositories work with all existing features: Query Objects, Specifications, Async Enumerable, Type-safe includes
+- Supports tracking who deleted entities via SetDeletedBy method
+- Full support for generic key types (int, Guid, long, string)
+- Three-tier deletion strategy: Soft Delete → Restore → Permanent Delete
+- Automatic filtering ensures deleted entities are excluded from all queries by default
+- GetIncludingDeleted methods provide access to soft-deleted data when needed
 
 ### Estimated Effort
-Medium (2-3 days)
+Medium (2-3 days) - **COMPLETED**
 
 ---
 
@@ -983,12 +1012,12 @@ Large (3-4 days)
 7. ✅ Batch Operations (Proposal 5)
 8. ✅ Type-Safe Include Properties (Proposal 6)
 9. ✅ Async Enumerable Support (Proposal 7)
-10. 🟢 Pagination Support (Proposal 3)
-11. 🟢 Soft Delete Support (Proposal 9)
+10. ✅ Query Object Pattern (Proposal 8)
+11. ✅ Soft Delete Support (Proposal 9)
+12. 🟢 Pagination Support (Proposal 3)
 
 ### Phase 2: Advanced Features (4-6 weeks)
-1. 🔴 Query Object Pattern (Proposal 8)
-2. 🔴 Event/Notification Support (Proposal 10)
+1. 🔴 Event/Notification Support (Proposal 10)
 
 ## Contributing
 

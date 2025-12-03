@@ -11,6 +11,7 @@ Welcome to the OakIdeas.GenericRepository documentation. This library provides a
 - [Query Object Pattern](./query-object-pattern.md)
 - [Type-Safe Include Properties](./type-safe-includes.md)
 - [Async Enumerable Support](./async-enumerable.md)
+- [Soft Delete Pattern](./soft-delete.md)
 - [API Reference](./api-reference.md)
 - [Best Practices](./best-practices.md)
 - [Contributing Guidelines](./contributing.md)
@@ -45,6 +46,7 @@ Both implementations share the same `IGenericRepository<TEntity>` interface, mak
 - **Generic Key Type Support (int, Guid, long, string, etc.)**
 - **Cancellation Token Support for all async operations**
 - **Async Enumerable Support for memory-efficient streaming of large datasets**
+- **Soft Delete Pattern for data recovery and audit trails**
 - Comprehensive XML documentation
 - Full test coverage
 
