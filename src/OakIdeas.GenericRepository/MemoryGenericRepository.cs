@@ -1,4 +1,5 @@
-﻿using OakIdeas.GenericRepository.Models;
+﻿using OakIdeas.GenericRepository.Core;
+using OakIdeas.GenericRepository.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,13 +17,21 @@ namespace OakIdeas.GenericRepository;
 /// </summary>
 /// <typeparam name="TEntity">The entity type, must inherit from EntityBase</typeparam>
 /// <typeparam name="TKey">The type of the primary key</typeparam>
-public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey>
+public class MemoryGenericRepository<TEntity, TKey> : CoreRepository<TEntity, TKey>, IGenericRepository<TEntity, TKey>
     where TEntity : EntityBase<TKey>
     where TKey : notnull
 {
     private readonly ConcurrentDictionary<TKey, TEntity> _data = new();
     private int _nextId = 1;
     private static readonly bool _isIntKey = typeof(TKey) == typeof(int);
+
+    /// <summary>
+    /// Initializes a new instance of the MemoryGenericRepository class.
+    /// </summary>
+    /// <param name="options">Optional repository options</param>
+    public MemoryGenericRepository(RepositoryOptions? options = null) : base(options)
+    {
+    }
 
     /// <summary>
     /// Deletes an entity from the repository.
@@ -376,15 +385,6 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     {
         int next = Interlocked.Increment(ref _nextId);
         return Task.FromResult(next);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ThrowIfNull(object? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
-    {
-        if (argument is null)
-        {
-            throw new ArgumentNullException(paramName);
-        }
     }
 }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OakIdeas.GenericRepository;
+using OakIdeas.GenericRepository.Core;
 using OakIdeas.GenericRepository.Models;
 using System;
 using System.Collections.Generic;
@@ -18,13 +19,24 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore;
 /// <typeparam name="TEntity">The entity type</typeparam>
 /// <typeparam name="TDataContext">The DbContext type</typeparam>
 /// <typeparam name="TKey">The type of the primary key</typeparam>
-public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataContext dataContext) : IGenericRepository<TEntity, TKey>
+public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey> : CoreRepository<TEntity, TKey>, IGenericRepository<TEntity, TKey>
     where TEntity : class 
     where TDataContext : DbContext
     where TKey : notnull
 {
-    protected readonly TDataContext context = dataContext;
-    internal DbSet<TEntity> dbSet = dataContext.Set<TEntity>();
+    protected readonly TDataContext context;
+    internal DbSet<TEntity> dbSet;
+
+    /// <summary>
+    /// Initializes a new instance of the EntityFrameworkCoreRepository class.
+    /// </summary>
+    /// <param name="dataContext">The Entity Framework DbContext</param>
+    /// <param name="options">Optional repository options</param>
+    public EntityFrameworkCoreRepository(TDataContext dataContext, RepositoryOptions? options = null) : base(options)
+    {
+        context = dataContext;
+        dbSet = dataContext.Set<TEntity>();
+    }
 
     /// <summary>
     /// Generic Get method with LINQ filter support, ordering, and eager loading of navigation properties.
@@ -374,15 +386,6 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
 
         return await queryable.ToListAsync(cancellationToken);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ThrowIfNull(object? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
-    {
-        if (argument is null)
-        {
-            throw new ArgumentNullException(paramName);
-        }
-    }
 }
 
 /// <summary>
@@ -392,8 +395,16 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
 /// </summary>
 /// <typeparam name="TEntity">The entity type</typeparam>
 /// <typeparam name="TDataContext">The DbContext type</typeparam>
-public class EntityFrameworkCoreRepository<TEntity, TDataContext>(TDataContext dataContext) : EntityFrameworkCoreRepository<TEntity, TDataContext, int>(dataContext)
+public class EntityFrameworkCoreRepository<TEntity, TDataContext> : EntityFrameworkCoreRepository<TEntity, TDataContext, int>
     where TEntity : class 
     where TDataContext : DbContext
 {
+    /// <summary>
+    /// Initializes a new instance of the EntityFrameworkCoreRepository class.
+    /// </summary>
+    /// <param name="dataContext">The Entity Framework DbContext</param>
+    /// <param name="options">Optional repository options</param>
+    public EntityFrameworkCoreRepository(TDataContext dataContext, RepositoryOptions? options = null) : base(dataContext, options)
+    {
+    }
 }

@@ -270,24 +270,6 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
     }
 
     private string? _deletedBy;
-
-    /// <summary>
-    /// Combines two filter expressions using AND logic.
-    /// </summary>
-    private Expression<Func<TEntity, bool>>? CombineFilters(
-        Expression<Func<TEntity, bool>>? first,
-        Expression<Func<TEntity, bool>> second)
-    {
-        if (first == null)
-            return second;
-
-        var parameter = Expression.Parameter(typeof(TEntity), "e");
-        var combined = Expression.AndAlso(
-            Expression.Invoke(first, parameter),
-            Expression.Invoke(second, parameter)
-        );
-        return Expression.Lambda<Func<TEntity, bool>>(combined, parameter);
-    }
 }
 
 /// <summary>
