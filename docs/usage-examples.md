@@ -10,6 +10,7 @@ This document provides comprehensive examples of using OakIdeas.GenericRepositor
 - [Ordering Results](#ordering-results)
 - [Eager Loading (Entity Framework Core)](#eager-loading-entity-framework-core)
 - [Cancellation Token Support](#cancellation-token-support)
+- [Batch Operations](#batch-operations)
 - [Complex Scenarios](#complex-scenarios)
 - [Error Handling](#error-handling)
 
@@ -762,6 +763,278 @@ public class CachedProductRepository
     }
 }
 ```
+
+## Batch Operations
+
+Batch operations allow you to perform multiple insert, update, or delete operations efficiently in a single call. This is significantly more efficient than performing individual operations, especially with Entity Framework Core where it reduces the number of database round-trips.
+
+### Inserting Multiple Entities
+
+```csharp
+using OakIdeas.GenericRepository;
+
+public class Product : EntityBase
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+
+// Create a list of products
+var products = new List<Product>
+{
+    new Product { Name = "Laptop", Price = 999.99m },
+    new Product { Name = "Mouse", Price = 24.99m },
+    new Product { Name = "Keyboard", Price = 79.99m },
+    new Product { Name = "Monitor", Price = 299.99m }
+};
+
+// Insert all products in a single operation
+var repository = new MemoryGenericRepository<Product>();
+var insertedProducts = await repository.InsertRange(products);
+
+Console.WriteLine($"Inserted {insertedProducts.Count()} products");
+// Output: Inserted 4 products
+```
+
+### Updating Multiple Entities
+
+```csharp
+// Get products to update
+var productsToUpdate = await repository.Get(filter: p => p.Price < 100);
+
+// Apply a discount to all products
+foreach (var product in productsToUpdate)
+{
+    product.Price *= 0.9m; // 10% discount
+}
+
+// Update all products in a single operation
+var updatedProducts = await repository.UpdateRange(productsToUpdate);
+
+Console.WriteLine($"Applied discount to {updatedProducts.Count()} products");
+```
+
+### Deleting Multiple Entities
+
+```csharp
+// Get products to delete
+var productsToDelete = await repository.Get(filter: p => p.Price < 10);
+
+// Delete all products in a single operation
+var deletedCount = await repository.DeleteRange(productsToDelete);
+
+Console.WriteLine($"Deleted {deletedCount} products");
+```
+
+### Deleting by Filter
+
+The most efficient way to delete multiple entities is by using a filter expression:
+
+```csharp
+// Delete all products with price less than 10
+var deletedCount = await repository.DeleteRange(p => p.Price < 10);
+
+Console.WriteLine($"Deleted {deletedCount} low-priced products");
+
+// Delete all products from a specific category
+var deletedCount2 = await repository.DeleteRange(p => p.Name.StartsWith("Obsolete"));
+
+Console.WriteLine($"Deleted {deletedCount2} obsolete products");
+```
+
+### Data Import Scenario
+
+```csharp
+public class ProductImporter
+{
+    private readonly IGenericRepository<Product> _repository;
+    
+    public ProductImporter(IGenericRepository<Product> repository)
+    {
+        _repository = repository;
+    }
+    
+    public async Task<ImportResult> ImportProductsFromCsv(string filePath)
+    {
+        var products = new List<Product>();
+        
+        // Read products from CSV (simplified example)
+        foreach (var line in File.ReadLines(filePath).Skip(1)) // Skip header
+        {
+            var parts = line.Split(',');
+            products.Add(new Product
+            {
+                Name = parts[0],
+                Price = decimal.Parse(parts[1])
+            });
+        }
+        
+        // Insert all products in a single batch operation
+        var startTime = DateTime.UtcNow;
+        var inserted = await _repository.InsertRange(products);
+        var duration = DateTime.UtcNow - startTime;
+        
+        return new ImportResult
+        {
+            TotalRecords = inserted.Count(),
+            Duration = duration,
+            RecordsPerSecond = inserted.Count() / duration.TotalSeconds
+        };
+    }
+}
+```
+
+### Bulk Update Scenario
+
+```csharp
+public class PriceUpdater
+{
+    private readonly IGenericRepository<Product> _repository;
+    
+    public async Task ApplySeasonalDiscounts(string category, decimal discountPercent)
+    {
+        // Get all products in the category
+        var products = await _repository.Get(
+            filter: p => p.Category == category && p.IsActive
+        );
+        
+        // Apply discount
+        var productsToUpdate = products.ToList();
+        foreach (var product in productsToUpdate)
+        {
+            product.Price *= (1 - discountPercent / 100);
+            product.LastModified = DateTime.UtcNow;
+        }
+        
+        // Update all products in a single batch
+        var updated = await _repository.UpdateRange(productsToUpdate);
+        
+        Console.WriteLine($"Applied {discountPercent}% discount to {updated.Count()} {category} products");
+    }
+}
+```
+
+### Batch Operations with Cancellation
+
+```csharp
+public async Task ImportLargeDataset(List<Product> products, CancellationToken cancellationToken)
+{
+    try
+    {
+        // Process in batches of 1000
+        const int batchSize = 1000;
+        var totalInserted = 0;
+        
+        for (int i = 0; i < products.Count; i += batchSize)
+        {
+            var batch = products.Skip(i).Take(batchSize);
+            var inserted = await _repository.InsertRange(batch, cancellationToken);
+            totalInserted += inserted.Count();
+            
+            Console.WriteLine($"Progress: {totalInserted}/{products.Count} products imported");
+        }
+    }
+    catch (OperationCanceledException)
+    {
+        Console.WriteLine("Import was cancelled by user");
+        throw;
+    }
+}
+```
+
+### Batch Delete with Validation
+
+```csharp
+public async Task<int> DeleteInactiveProducts(DateTime olderThan)
+{
+    // Delete all products that haven't been modified in over a year
+    var deletedCount = await _repository.DeleteRange(
+        p => p.LastModified < olderThan && !p.IsActive
+    );
+    
+    if (deletedCount > 0)
+    {
+        Console.WriteLine($"Cleaned up {deletedCount} inactive products");
+    }
+    
+    return deletedCount;
+}
+```
+
+### Performance Comparison
+
+```csharp
+public async Task PerformanceComparison()
+{
+    var products = Enumerable.Range(1, 1000)
+        .Select(i => new Product { Name = $"Product {i}", Price = i * 10 })
+        .ToList();
+    
+    // Method 1: Individual inserts
+    var repository1 = new MemoryGenericRepository<Product>();
+    var startTime1 = DateTime.UtcNow;
+    
+    foreach (var product in products)
+    {
+        await repository1.Insert(product);
+    }
+    
+    var duration1 = DateTime.UtcNow - startTime1;
+    Console.WriteLine($"Individual inserts: {duration1.TotalMilliseconds}ms");
+    
+    // Method 2: Batch insert
+    var repository2 = new MemoryGenericRepository<Product>();
+    var startTime2 = DateTime.UtcNow;
+    
+    await repository2.InsertRange(products);
+    
+    var duration2 = DateTime.UtcNow - startTime2;
+    Console.WriteLine($"Batch insert: {duration2.TotalMilliseconds}ms");
+    Console.WriteLine($"Performance improvement: {duration1.TotalMilliseconds / duration2.TotalMilliseconds:F2}x faster");
+}
+```
+
+### Entity Framework Core Batch Operations
+
+When using Entity Framework Core, batch operations are highly optimized and translated to efficient SQL:
+
+```csharp
+using OakIdeas.GenericRepository.EntityFrameworkCore;
+
+public class ProductService
+{
+    private readonly EntityFrameworkCoreRepository<Product, MyDbContext> _repository;
+    
+    public async Task BulkOperationsExample()
+    {
+        // InsertRange uses AddRangeAsync - single database round-trip
+        var newProducts = new List<Product> { /* ... */ };
+        await _repository.InsertRange(newProducts);
+        
+        // UpdateRange uses UpdateRange - efficient batch update
+        var productsToUpdate = await _repository.Get(filter: p => p.Category == "Electronics");
+        foreach (var product in productsToUpdate)
+        {
+            product.Price *= 1.1m; // 10% price increase
+        }
+        await _repository.UpdateRange(productsToUpdate);
+        
+        // DeleteRange with filter - efficient bulk delete
+        await _repository.DeleteRange(p => p.IsDiscontinued && p.Stock == 0);
+    }
+}
+```
+
+### Best Practices for Batch Operations
+
+1. **Use batch operations for multiple entities** - Always prefer `InsertRange`, `UpdateRange`, or `DeleteRange` over loops with individual operations
+2. **Consider batch size** - For very large datasets (10,000+ records), consider processing in smaller batches (e.g., 1,000 at a time)
+3. **Use filter-based deletion** - `DeleteRange(filter)` is more efficient than retrieving entities first
+4. **Handle empty collections** - All batch operations safely handle empty collections and return appropriate defaults
+5. **Validate before batch operations** - Validate all entities before calling batch operations to avoid partial failures
+6. **Use cancellation tokens** - For long-running batch operations, pass cancellation tokens to allow user cancellation
+7. **Transaction considerations** - Batch operations execute in a single transaction, so all succeed or all fail
+8. **Monitor performance** - For Entity Framework Core, use logging to verify that batch operations are generating efficient SQL
 
 ## Error Handling
 
