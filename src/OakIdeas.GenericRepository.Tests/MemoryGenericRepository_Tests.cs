@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OakIdeas.GenericRepository.Tests.Models;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -97,6 +98,102 @@ namespace OakIdeas.GenericRepository.Tests
 			var existing = await repository.Get(newEntity.ID);
 
 			Assert.IsNull(existing);
+		}
+
+		// Error handling tests
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task Insert_NullEntity_ThrowsException()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			await repository.Insert(null);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task Update_NullEntity_ThrowsException()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			await repository.Update(null);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task Delete_NullEntity_ThrowsException()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			await repository.Delete((Customer)null);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task DeleteByID_NullID_ThrowsException()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			await repository.Delete((object)null);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task GetByID_NullID_ThrowsException()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			await repository.Get((object)null);
+		}
+
+		// Edge case tests
+		[TestMethod]
+		public async Task Update_NonExistentEntity_ReturnsEntity()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			var entity = new Customer() { ID = 999, Name = _entityDefaultName };
+			var result = await repository.Update(entity);
+			Assert.AreEqual(entity, result);
+		}
+
+		[TestMethod]
+		public async Task GetByID_NonExistentID_ReturnsNull()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			var result = await repository.Get(999);
+			Assert.IsNull(result);
+		}
+
+		[TestMethod]
+		public async Task Delete_NonExistentEntity_ReturnsTrue()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			var entity = new Customer() { ID = 999, Name = _entityDefaultName };
+			var result = await repository.Delete(entity);
+			Assert.IsTrue(result);
+		}
+
+		[TestMethod]
+		public async Task DeleteByID_NonExistentID_ReturnsTrue()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			var result = await repository.Delete(999);
+			Assert.IsTrue(result);
+		}
+
+		[TestMethod]
+		public async Task Get_WithFilter_NoMatches_ReturnsEmpty()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			await repository.Insert(new Customer() { Name = _entityDefaultName });
+			var result = await repository.Get(x => x.Name == "NonExistent");
+			Assert.AreEqual(0, result.Count());
+		}
+
+		[TestMethod]
+		public async Task Get_MultipleEntities_ReturnsAll()
+		{
+			var repository = new MemoryGenericRepository<Customer>();
+			await repository.Insert(new Customer() { Name = _entityDefaultName });
+			await repository.Insert(new Customer() { Name = _entityNewName });
+			await repository.Insert(new Customer() { Name = "Third Customer" });
+			var result = await repository.Get();
+			Assert.AreEqual(3, result.Count());
 		}
 	}
 }
