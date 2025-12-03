@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>13.0</LangVersion>
+    <Nullable>enable</Nullable>
     <Version>0.0.5.1-alpha</Version>
     <Authors>Mateus Carvalho</Authors>
     <Company>OakIdeas</Company>
