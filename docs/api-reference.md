@@ -550,6 +550,122 @@ var deletedCount = await repository.DeleteRange(p => p.IsObsolete, cts.Token);
 
 ---
 
+#### GetAsyncEnumerable
+
+Streams entities asynchronously without loading all results into memory at once. This method is memory-efficient for processing large datasets.
+
+**Signature:**
+```csharp
+IAsyncEnumerable<TEntity> GetAsyncEnumerable(
+    Expression<Func<TEntity, bool>>? filter = null,
+    Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+    string includeProperties = "",
+    CancellationToken cancellationToken = default);
+```
+
+**Parameters:**
+- `filter` (optional): LINQ filter expression to filter entities
+- `orderBy` (optional): Function to specify ordering
+- `includeProperties` (optional): Comma-separated list of navigation properties to eager load
+- `cancellationToken` (optional): Cancellation token to cancel the operation
+
+**Returns:** An async enumerable stream of entities matching the criteria
+
+**Throws:**
+- `OperationCanceledException`: When the operation is cancelled
+
+**Use Cases:**
+- Processing large datasets without loading everything into memory
+- Exporting data to files
+- ETL operations
+- Batch processing with progress reporting
+- Any scenario where you need to process millions of records efficiently
+
+**Examples:**
+```csharp
+// Stream all products
+await foreach (var product in repository.GetAsyncEnumerable())
+{
+    await ProcessProduct(product);
+}
+
+// Stream filtered products
+await foreach (var product in repository.GetAsyncEnumerable(
+    filter: p => p.IsActive && p.Stock > 0))
+{
+    await UpdatePricing(product);
+}
+
+// Stream with ordering
+await foreach (var customer in repository.GetAsyncEnumerable(
+    orderBy: q => q.OrderBy(c => c.LastName).ThenBy(c => c.FirstName)))
+{
+    await SendEmail(customer);
+}
+
+// Export to CSV with progress reporting
+var count = 0;
+await foreach (var order in repository.GetAsyncEnumerable(
+    filter: o => o.Status == OrderStatus.Completed,
+    orderBy: q => q.OrderBy(o => o.OrderDate),
+    cancellationToken: cancellationToken))
+{
+    await csvWriter.WriteLineAsync($"{order.ID},{order.CustomerName},{order.Total}");
+    count++;
+    
+    if (count % 1000 == 0)
+    {
+        Console.WriteLine($"Exported {count} orders...");
+    }
+}
+
+// Data migration with batching
+var batch = new List<NewProduct>();
+const int batchSize = 100;
+
+await foreach (var oldProduct in oldRepository.GetAsyncEnumerable())
+{
+    var newProduct = TransformProduct(oldProduct);
+    batch.Add(newProduct);
+    
+    if (batch.Count >= batchSize)
+    {
+        await newRepository.InsertRange(batch);
+        batch.Clear();
+    }
+}
+
+if (batch.Count > 0)
+{
+    await newRepository.InsertRange(batch);
+}
+
+// With cancellation token and timeout
+var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+try
+{
+    await foreach (var item in repository.GetAsyncEnumerable(
+        cancellationToken: cts.Token))
+    {
+        await ProcessItem(item);
+    }
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Processing timed out or was cancelled");
+}
+```
+
+**Performance Considerations:**
+- **Memory Efficient**: Streams one entity at a time instead of loading all into memory
+- **Database Efficient**: EF Core implementation uses server-side cursor
+- **Best for Large Datasets**: Optimal for millions of records; overkill for small result sets
+- **Combine with Filtering**: Always filter at database level for best performance
+
+**See Also:** [Async Enumerable Guide](async-enumerable.md) for detailed examples and best practices.
+
+---
+
 ### IGenericRepository<TEntity>
 
 Backward-compatible generic repository interface for CRUD operations with integer primary keys.

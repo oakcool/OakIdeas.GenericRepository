@@ -290,6 +290,41 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     }
 
     /// <summary>
+    /// Streams entities asynchronously without loading all results into memory at once.
+    /// Use this method for processing large datasets to avoid memory issues.
+    /// </summary>
+    /// <param name="filter">Optional LINQ filter expression</param>
+    /// <param name="orderBy">Optional ordering function</param>
+    /// <param name="includeProperties">Not used in memory repository implementation</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>An async enumerable stream of entities matching the criteria</returns>
+    public async IAsyncEnumerable<TEntity> GetAsyncEnumerable(
+        Expression<Func<TEntity, bool>>? filter = null,
+        Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+        string includeProperties = "",
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        IQueryable<TEntity> query = _data.Values.AsQueryable();
+
+        // Apply the filter
+        if (filter is not null)
+        {
+            query = query.Where(filter);
+        }
+
+        // Sort
+        var orderedQuery = orderBy is not null ? orderBy(query) : query;
+
+        // Stream results one at a time
+        foreach (var entity in orderedQuery)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return entity;
+        }
+    }
+
+    /// <summary>
     /// Generates the next available ID for a new entity.
     /// Uses atomic increment for O(1) performance and thread safety.
     /// Only applicable for integer keys.

@@ -276,6 +276,49 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
         return await context.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Streams entities asynchronously without loading all results into memory at once.
+    /// Use this method for processing large datasets to avoid memory issues.
+    /// </summary>
+    /// <param name="filter">Optional LINQ filter expression</param>
+    /// <param name="orderBy">Optional ordering function</param>
+    /// <param name="includeProperties">Comma-separated list of navigation properties to include</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>An async enumerable stream of entities matching the criteria</returns>
+    public virtual async IAsyncEnumerable<TEntity> GetAsyncEnumerable(
+        Expression<Func<TEntity, bool>>? filter = null,
+        Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+        string includeProperties = "",
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        // Get the dbSet from the Entity passed in                
+        IQueryable<TEntity> query = dbSet;
+
+        // Apply the filter
+        if (filter is not null)
+        {
+            query = query.Where(filter);
+        }
+
+        // Include the specified properties
+        foreach (var includeProperty in includeProperties.Split([','], StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
+
+        // Sort
+        if (orderBy is not null)
+        {
+            query = orderBy(query);
+        }
+
+        // Stream results using EF Core's AsAsyncEnumerable
+        await foreach (var entity in query.AsAsyncEnumerable().WithCancellation(cancellationToken))
+        {
+            yield return entity;
+        }
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ThrowIfNull(object? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
     {

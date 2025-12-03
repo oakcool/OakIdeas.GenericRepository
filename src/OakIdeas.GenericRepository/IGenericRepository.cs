@@ -117,6 +117,21 @@ public interface IGenericRepository<TEntity, TKey> where TEntity : class
     /// <returns>The number of entities deleted</returns>
     /// <exception cref="ArgumentNullException">Thrown when filter is null</exception>
     Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Streams entities asynchronously without loading all results into memory at once.
+    /// Use this method for processing large datasets to avoid memory issues.
+    /// </summary>
+    /// <param name="filter">Optional LINQ filter expression</param>
+    /// <param name="orderBy">Optional ordering function</param>
+    /// <param name="includeProperties">Comma-separated list of navigation properties to include</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>An async enumerable stream of entities matching the criteria</returns>
+    IAsyncEnumerable<TEntity> GetAsyncEnumerable(
+        Expression<Func<TEntity, bool>>? filter = null,
+        Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+        string includeProperties = "",
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>
