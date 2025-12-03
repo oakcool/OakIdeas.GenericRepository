@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OakIdeas.GenericRepository\OakIdeas.GenericRepository.csproj" />
+    <ProjectReference Include="..\OakIdeas.GenericRepository.Memory\OakIdeas.GenericRepository.Memory.csproj" />
   </ItemGroup>
 
 </Project>
