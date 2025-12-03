@@ -5,6 +5,7 @@ Middleware infrastructure for OakIdeas.GenericRepository providing extensible cr
 ## Features
 
 - **Pipeline-based architecture** for composable functionality
+- **Fluent API** for clean, readable middleware configuration
 - **Standard middleware** for common scenarios (logging, validation, auditing, performance monitoring)
 - **Easy to extend** with custom middleware
 - **Type-safe** and fully async
@@ -18,43 +19,64 @@ dotnet add package OakIdeas.GenericRepository.Middleware
 
 ## Quick Start
 
+### Fluent API (Recommended)
+
+The simplest way to use middleware is through extension methods:
+
 ```csharp
 using OakIdeas.GenericRepository;
 using OakIdeas.GenericRepository.Middleware;
-using OakIdeas.GenericRepository.Middleware.Standard;
 
-// Create base repository
-var innerRepository = new MemoryGenericRepository<Customer>();
-
-// Add middleware
-var repository = new MiddlewareRepository<Customer>(
-    innerRepository,
-    new LoggingMiddleware<Customer, int>(log => Console.WriteLine(log)),
-    new ValidationMiddleware<Customer, int>(),
-    new AuditMiddleware<Customer, int>(entry => SaveAudit(entry))
-);
+// Create repository with middleware
+var repository = new MemoryGenericRepository<Customer>()
+    .WithLogging(log => Console.WriteLine(log))
+    .WithValidation()
+    .WithAuditing(entry => SaveAudit(entry), () => currentUser);
 
 // Use normally - middleware automatically applied
 var customer = new Customer { Name = "John Doe" };
 await repository.Insert(customer);
 ```
 
+### Options-Based Configuration
+
+For more complex scenarios:
+
+```csharp
+var repository = new MemoryGenericRepository<Customer>()
+    .WithMiddleware(options => options
+        .UseMiddleware(new LoggingMiddleware<Customer, int>(logger))
+        .UseMiddleware(new ValidationMiddleware<Customer, int>())
+        .UseMiddleware(new AuditMiddleware<Customer, int>(auditLog)));
+```
+
+### Dependency Injection
+
+```csharp
+services.AddScoped<IGenericRepository<Customer, int>>(sp => 
+{
+    var logger = sp.GetRequiredService<ILogger<Customer>>();
+    var auditService = sp.GetRequiredService<IAuditService>();
+    
+    return new MemoryGenericRepository<Customer>()
+        .WithLogging(log => logger.LogInformation(log))
+        .WithValidation()
+        .WithAuditing(entry => auditService.Log(entry));
+});
+```
+
 ## Standard Middleware
+
+All standard middleware can be added using convenient extension methods:
 
 ### LoggingMiddleware
 
-Logs all repository operations with optional performance metrics.
-
 ```csharp
-var loggingMiddleware = new LoggingMiddleware<Customer, int>(
-    log => _logger.LogInformation(log),
-    logPerformance: true
-);
+var repository = new MemoryGenericRepository<Customer>()
+    .WithLogging(log => _logger.LogInformation(log), logPerformance: true);
 ```
 
 ### ValidationMiddleware
-
-Validates entities using DataAnnotations before insert/update.
 
 ```csharp
 public class Customer : EntityBase
@@ -64,29 +86,38 @@ public class Customer : EntityBase
     public string Name { get; set; }
 }
 
-var validationMiddleware = new ValidationMiddleware<Customer, int>();
+var repository = new MemoryGenericRepository<Customer>()
+    .WithValidation();
 ```
 
 ### PerformanceMiddleware
 
-Monitors and reports performance metrics.
-
 ```csharp
-var performanceMiddleware = new PerformanceMiddleware<Customer, int>(
-    (operation, durationMs) => _metrics.Record(operation, durationMs),
-    slowOperationThresholdMs: 1000
-);
+var repository = new MemoryGenericRepository<Customer>()
+    .WithPerformanceMonitoring(
+        (operation, durationMs) => _metrics.Record(operation, durationMs),
+        slowOperationThresholdMs: 1000);
 ```
 
 ### AuditMiddleware
 
-Creates audit trails for data modifications.
+```csharp
+var repository = new MemoryGenericRepository<Customer>()
+    .WithAuditing(
+        entry => _auditLog.Add(entry),
+        userProvider: () => _httpContext.User.Identity.Name);
+```
+
+## Chaining Middleware
+
+Middleware can be chained for complex scenarios:
 
 ```csharp
-var auditMiddleware = new AuditMiddleware<Customer, int>(
-    entry => _auditLog.Add(entry),
-    userProvider: () => _httpContext.User.Identity.Name
-);
+var repository = new MemoryGenericRepository<Customer>()
+    .WithValidation()                    // Validates first
+    .WithAuditing(SaveAudit, GetUser)    // Then audits
+    .WithLogging(Log)                    // Then logs
+    .WithPerformanceMonitoring(Track);   // Finally tracks performance
 ```
 
 ## Creating Custom Middleware
