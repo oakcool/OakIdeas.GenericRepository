@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace OakIdeas.GenericRepository.Models;
 
-namespace OakIdeas.GenericRepository.Models
+/// <summary>
+/// Base class for entities with an integer primary key.
+/// </summary>
+public abstract class EntityBase
 {
-	public abstract class EntityBase
-	{
-		public int ID { get; set; }
-	}
+    /// <summary>
+    /// Gets or sets the primary key identifier.
+    /// </summary>
+    public int ID { get; set; }
 }

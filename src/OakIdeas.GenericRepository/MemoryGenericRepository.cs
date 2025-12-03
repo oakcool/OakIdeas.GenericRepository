@@ -4,134 +4,161 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace OakIdeas.GenericRepository
+namespace OakIdeas.GenericRepository;
+
+/// <summary>
+/// In-memory implementation of the generic repository pattern using a concurrent dictionary.
+/// Suitable for testing and development scenarios.
+/// </summary>
+/// <typeparam name="TEntity">The entity type, must inherit from EntityBase</typeparam>
+public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity>
+    where TEntity : EntityBase
 {
-    public class MemoryGenericRepository<TEntity> : IGenericRepository<TEntity>
-        where TEntity : EntityBase
+    private readonly ConcurrentDictionary<int, TEntity> _data = [];
+    private int _nextId = 1;
+
+    /// <summary>
+    /// Deletes an entity from the repository.
+    /// </summary>
+    /// <param name="entityToDelete">The entity to delete</param>
+    /// <returns>True if deletion was successful, false otherwise</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entityToDelete is null</exception>
+    public Task<bool> Delete(TEntity entityToDelete)
     {
-        readonly ConcurrentDictionary<int, TEntity> _data;
+        ThrowIfNull(entityToDelete);
 
-        public MemoryGenericRepository()
+        if (_data.TryGetValue(entityToDelete.ID, out _))
         {
-            _data = new ConcurrentDictionary<int, TEntity>();
+            return Task.FromResult(_data.TryRemove(entityToDelete.ID, out _));
         }
 
-        public async Task<bool> Delete(TEntity entityToDelete)
-        {
-            return await Task.Run(() =>
-            {
-                if (_data.TryGetValue(entityToDelete.ID, out TEntity exiting))
-                {
-                    return _data.TryRemove(entityToDelete.ID, out TEntity oldEntity);
-                }
+        return Task.FromResult(true);
+    }
 
-                return true;
-            });
+    /// <summary>
+    /// Deletes an entity by its primary key.
+    /// </summary>
+    /// <param name="id">The primary key value</param>
+    /// <returns>True if deletion was successful, false otherwise</returns>
+    /// <exception cref="ArgumentNullException">Thrown when id is null</exception>
+    public Task<bool> Delete(object id)
+    {
+        ThrowIfNull(id);
+
+        if (id is int intId && _data.TryGetValue(intId, out _))
+        {
+            return Task.FromResult(_data.TryRemove(intId, out _));
         }
 
-        public async Task<bool> Delete(object id)
-        {
-            return await Task.Run(() =>
-            {
-                if (id is int @int && _data.TryGetValue(@int, out TEntity exiting))
-                {
-                    return _data.TryRemove(@int, out TEntity entity);
-                }
+        return Task.FromResult(true);
+    }
 
-                return true;
-            });
+    /// <summary>
+    /// Gets entities with optional filtering and ordering.
+    /// </summary>
+    /// <param name="filter">Optional LINQ filter expression</param>
+    /// <param name="orderBy">Optional ordering function</param>
+    /// <param name="includeProperties">Not used in memory repository implementation</param>
+    /// <returns>Collection of entities matching the criteria</returns>
+    public Task<IEnumerable<TEntity>> Get(
+        Expression<Func<TEntity, bool>>? filter = null, 
+        Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, 
+        string includeProperties = "")
+    {
+        IQueryable<TEntity> query = _data.Values.AsQueryable();
+
+        // Apply the filter
+        if (filter is not null)
+        {
+            query = query.Where(filter);
         }
 
-        public async Task<IEnumerable<TEntity>> Get(Expression<Func<TEntity, bool>> filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null, string includeProperties = "")
+        // Sort
+        return Task.FromResult<IEnumerable<TEntity>>(
+            orderBy is not null ? orderBy(query).ToList() : query.ToList()
+        );
+    }
+
+    /// <summary>
+    /// Gets an entity by its primary key.
+    /// </summary>
+    /// <param name="id">The primary key value</param>
+    /// <returns>The entity if found, null otherwise</returns>
+    /// <exception cref="ArgumentNullException">Thrown when id is null</exception>
+    public Task<TEntity?> Get(object id)
+    {
+        ThrowIfNull(id);
+
+        return Task.FromResult(
+            id is int intId && _data.TryGetValue(intId, out var existing) 
+                ? existing 
+                : null
+        );
+    }
+
+    /// <summary>
+    /// Inserts a new entity into the repository. If the entity ID is 0, a new ID is generated.
+    /// </summary>
+    /// <param name="entity">The entity to insert</param>
+    /// <returns>The inserted entity, or the existing entity if one with the same ID already exists</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entity is null</exception>
+    public async Task<TEntity> Insert(TEntity entity)
+    {
+        ThrowIfNull(entity);
+
+        if (entity.ID == 0)
         {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    IQueryable<TEntity> query = _data.Values.AsQueryable<TEntity>();
-
-                    // Apply the filter
-                    if (filter != null)
-                    {
-                        query = query.Where(filter);
-                    }
-
-                    // Sort
-                    if (orderBy != null)
-                    {
-                        return orderBy(query).ToList();
-                    }
-                    else
-                    {
-                        return query.ToList();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var msg = ex.Message;
-                    return null;
-                }
-            });
+            entity.ID = await GetNextID();
         }
 
-        public async Task<TEntity> Get(object id)
+        if (_data.TryGetValue(entity.ID, out var existing))
         {
-            return await Task.Run(() =>
-            {
-                if (id is int @int && _data.TryGetValue(@int, out TEntity exiting))
-                {
-                    return exiting;
-                }
-
-                return null;
-            });
+            return existing;
         }
 
-        public async Task<TEntity> Insert(TEntity entity)
+        _data.AddOrUpdate(entity.ID, _ => entity, (_, _) => entity);
+        return entity;
+    }
+
+    /// <summary>
+    /// Updates an existing entity in the repository.
+    /// </summary>
+    /// <param name="entityToUpdate">The entity to update</param>
+    /// <returns>The updated entity</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entityToUpdate is null</exception>
+    public Task<TEntity> Update(TEntity entityToUpdate)
+    {
+        ThrowIfNull(entityToUpdate);
+
+        if (_data.TryGetValue(entityToUpdate.ID, out _))
         {
-            if (entity.ID == 0)
-            {
-                entity.ID = await GetNextID();
-            }
-
-            if (_data.TryGetValue(entity.ID, out TEntity exiting))
-            {
-                return exiting;
-            }
-            else
-            {
-                _data.AddOrUpdate(entity.ID, id => entity, (id, oldEntity) => entity);
-
-                return entity;
-            }
+            _data[entityToUpdate.ID] = entityToUpdate;
         }
 
-        public async Task<TEntity> Update(TEntity entityToUpdate)
-        {
-            return await Task.Run(() =>
-            {
-                if (_data.TryGetValue(entityToUpdate.ID, out TEntity exiting))
-                {
-                    _data[entityToUpdate.ID] = entityToUpdate;
-                }
+        return Task.FromResult(entityToUpdate);
+    }
 
-                return entityToUpdate;
-            });
-        }
+    /// <summary>
+    /// Generates the next available ID for a new entity.
+    /// Uses atomic increment for O(1) performance and thread safety.
+    /// </summary>
+    /// <returns>The next available ID</returns>
+    protected Task<int> GetNextID()
+    {
+        int next = Interlocked.Increment(ref _nextId);
+        return Task.FromResult(next);
+    }
 
-        protected async Task<int> GetNextID()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ThrowIfNull(object? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
+    {
+        if (argument is null)
         {
-            return await Task.Run(() =>
-            {
-                int next = 1;
-                if (_data.Count() > 0)
-                {
-                    next = _data.Keys.Max(k => k) + 1;
-                }
-                return next;
-            });
+            throw new ArgumentNullException(paramName);
         }
     }
 }

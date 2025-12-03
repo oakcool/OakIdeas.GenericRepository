@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Contexts;
 using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Models;
@@ -113,6 +114,91 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var existing = await repository.Get(newEntity.ID);
 
 			Assert.IsNull(existing);
+		}
+
+		// Error handling tests
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task Insert_NullEntity_ThrowsException()
+		{
+			var context = new InMemoryDataContext();
+			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+			await repository.Insert(null);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task Update_NullEntity_ThrowsException()
+		{
+			var context = new InMemoryDataContext();
+			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+			await repository.Update(null);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task Delete_NullEntity_ThrowsException()
+		{
+			var context = new InMemoryDataContext();
+			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+			await repository.Delete((Customer)null);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task DeleteByID_NullID_ThrowsException()
+		{
+			var context = new InMemoryDataContext();
+			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+			await repository.Delete((object)null);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public async Task GetByID_NullID_ThrowsException()
+		{
+			var context = new InMemoryDataContext();
+			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+			await repository.Get((object)null);
+		}
+
+		// Edge case tests
+		[TestMethod]
+		public async Task GetByID_NonExistentID_ReturnsNull()
+		{
+			var context = new InMemoryDataContext();
+			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+			var result = await repository.Get(999);
+			Assert.IsNull(result);
+		}
+
+		[TestMethod]
+		public async Task Get_WithFilter_NoMatches_ReturnsEmpty()
+		{
+			var context = new InMemoryDataContext();
+			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+			await repository.Insert(new Customer() { Name = _entityDefaultName });
+			var result = await repository.Get(x => x.Name == "NonExistent");
+			Assert.AreEqual(0, result.Count());
+		}
+
+		[TestMethod]
+		public async Task Get_MultipleEntities_ReturnsAll()
+		{
+			var uniqueDbName = $"CustomerDB_{Guid.NewGuid()}";
+			var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<InMemoryDataContext>()
+				.UseInMemoryDatabase(uniqueDbName)
+				.Options;
+			
+			using (var context = new InMemoryDataContext(options))
+			{
+				var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+				await repository.Insert(new Customer() { Name = _entityDefaultName });
+				await repository.Insert(new Customer() { Name = _entityNewName });
+				await repository.Insert(new Customer() { Name = "Third Customer" });
+				var result = await repository.Get();
+				Assert.AreEqual(3, result.Count());
+			}
 		}
 	}
 }
