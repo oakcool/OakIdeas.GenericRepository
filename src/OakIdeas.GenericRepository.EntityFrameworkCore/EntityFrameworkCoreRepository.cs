@@ -74,7 +74,7 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
     {
         ThrowIfNull(id);
 
-        return await dbSet.FindAsync([id], cancellationToken);
+        return await dbSet.FindAsync(new object[] { id }, cancellationToken);
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
     {
         ThrowIfNull(id);
 
-        var entityToDelete = await dbSet.FindAsync([id], cancellationToken);
+        var entityToDelete = await dbSet.FindAsync(new object[] { id }, cancellationToken);
         return await Delete(entityToDelete, cancellationToken);
     }
 
