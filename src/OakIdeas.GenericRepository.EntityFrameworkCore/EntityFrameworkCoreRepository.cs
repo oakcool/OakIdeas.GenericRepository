@@ -141,6 +141,100 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
         return entityToUpdate;
     }
 
+    /// <summary>
+    /// Inserts multiple entities into the database in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to insert</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The collection of inserted entities</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    public virtual async Task<IEnumerable<TEntity>> InsertRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        ThrowIfNull(entities);
+
+        var entityList = entities.ToList();
+        if (entityList.Count == 0)
+        {
+            return entityList;
+        }
+
+        await dbSet.AddRangeAsync(entityList, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+        return entityList;
+    }
+
+    /// <summary>
+    /// Updates multiple entities in the database in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to update</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The collection of updated entities</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    public virtual async Task<IEnumerable<TEntity>> UpdateRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        ThrowIfNull(entities);
+
+        var entityList = entities.ToList();
+        if (entityList.Count == 0)
+        {
+            return entityList;
+        }
+
+        dbSet.UpdateRange(entityList);
+        await context.SaveChangesAsync(cancellationToken);
+        return entityList;
+    }
+
+    /// <summary>
+    /// Deletes multiple entities from the database in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to delete</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The number of entities deleted</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    public virtual async Task<int> DeleteRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        ThrowIfNull(entities);
+
+        var entityList = entities.ToList();
+        if (entityList.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var entity in entityList)
+        {
+            if (context.Entry(entity).State == EntityState.Detached)
+            {
+                dbSet.Attach(entity);
+            }
+        }
+
+        dbSet.RemoveRange(entityList);
+        return await context.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Deletes all entities matching the specified filter in a single operation.
+    /// </summary>
+    /// <param name="filter">LINQ filter expression to identify entities to delete</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The number of entities deleted</returns>
+    /// <exception cref="ArgumentNullException">Thrown when filter is null</exception>
+    public virtual async Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default)
+    {
+        ThrowIfNull(filter);
+
+        var entitiesToDelete = await dbSet.Where(filter).ToListAsync(cancellationToken);
+        if (entitiesToDelete.Count == 0)
+        {
+            return 0;
+        }
+
+        dbSet.RemoveRange(entitiesToDelete);
+        return await context.SaveChangesAsync(cancellationToken);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ThrowIfNull(object? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
     {

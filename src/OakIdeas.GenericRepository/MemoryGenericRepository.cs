@@ -159,6 +159,118 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     }
 
     /// <summary>
+    /// Inserts multiple entities into the repository in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to insert</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The collection of inserted entities</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    public async Task<IEnumerable<TEntity>> InsertRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfNull(entities);
+
+        var entityList = entities.ToList();
+        if (entityList.Count == 0)
+        {
+            return entityList;
+        }
+
+        var insertedEntities = new List<TEntity>();
+        foreach (var entity in entityList)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var inserted = await Insert(entity, cancellationToken);
+            insertedEntities.Add(inserted);
+        }
+
+        return insertedEntities;
+    }
+
+    /// <summary>
+    /// Updates multiple entities in the repository in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to update</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The collection of updated entities</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    public Task<IEnumerable<TEntity>> UpdateRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfNull(entities);
+
+        var entityList = entities.ToList();
+        if (entityList.Count == 0)
+        {
+            return Task.FromResult<IEnumerable<TEntity>>(entityList);
+        }
+
+        var updatedEntities = new List<TEntity>();
+        foreach (var entity in entityList)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfNull(entity);
+
+            if (_data.TryGetValue(entity.ID, out _))
+            {
+                _data[entity.ID] = entity;
+            }
+            updatedEntities.Add(entity);
+        }
+
+        return Task.FromResult<IEnumerable<TEntity>>(updatedEntities);
+    }
+
+    /// <summary>
+    /// Deletes multiple entities from the repository in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to delete</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The number of entities deleted</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    public Task<int> DeleteRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfNull(entities);
+
+        var entityList = entities.ToList();
+        if (entityList.Count == 0)
+        {
+            return Task.FromResult(0);
+        }
+
+        int deletedCount = 0;
+        foreach (var entity in entityList)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfNull(entity);
+
+            if (_data.TryRemove(entity.ID, out _))
+            {
+                deletedCount++;
+            }
+        }
+
+        return Task.FromResult(deletedCount);
+    }
+
+    /// <summary>
+    /// Deletes all entities matching the specified filter in a single operation.
+    /// </summary>
+    /// <param name="filter">LINQ filter expression to identify entities to delete</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The number of entities deleted</returns>
+    /// <exception cref="ArgumentNullException">Thrown when filter is null</exception>
+    public async Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfNull(filter);
+
+        var entitiesToDelete = await Get(filter: filter, cancellationToken: cancellationToken);
+        return await DeleteRange(entitiesToDelete, cancellationToken);
+    }
+
+    /// <summary>
     /// Generates the next available ID for a new entity.
     /// Uses atomic increment for O(1) performance and thread safety.
     /// Only applicable for integer keys.

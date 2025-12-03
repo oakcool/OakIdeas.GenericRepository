@@ -311,6 +311,176 @@ var deleted = await repository.Delete(1, cts.Token);
 
 ---
 
+##### InsertRange
+
+```csharp
+Task<IEnumerable<TEntity>> InsertRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+```
+
+Inserts multiple entities into the repository in a single operation.
+
+**Parameters:**
+- `entities` (IEnumerable<TEntity>): The collection of entities to insert. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
+
+**Returns:** Task<IEnumerable<TEntity>> - The collection of inserted entities with generated IDs.
+
+**Exceptions:**
+- `ArgumentNullException`: Thrown when entities is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
+
+**Performance Notes:**
+- For EntityFrameworkCore: Uses `AddRangeAsync` and single `SaveChangesAsync` for optimal database performance.
+- For MemoryRepository: Processes entities sequentially but in a single transaction-like operation.
+- Significantly more efficient than multiple individual `Insert` calls.
+
+**Example:**
+```csharp
+// Insert multiple customers
+var customers = new List<Customer>
+{
+    new Customer { Name = "John Doe", Email = "john@example.com" },
+    new Customer { Name = "Jane Smith", Email = "jane@example.com" },
+    new Customer { Name = "Bob Johnson", Email = "bob@example.com" }
+};
+
+var inserted = await repository.InsertRange(customers);
+Console.WriteLine($"Inserted {inserted.Count()} customers");
+
+// With cancellation token
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+var inserted = await repository.InsertRange(customers, cts.Token);
+
+// Empty collection is safe
+var empty = await repository.InsertRange(new List<Customer>());
+// Returns empty collection
+```
+
+---
+
+##### UpdateRange
+
+```csharp
+Task<IEnumerable<TEntity>> UpdateRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+```
+
+Updates multiple entities in the repository in a single operation.
+
+**Parameters:**
+- `entities` (IEnumerable<TEntity>): The collection of entities to update. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
+
+**Returns:** Task<IEnumerable<TEntity>> - The collection of updated entities.
+
+**Exceptions:**
+- `ArgumentNullException`: Thrown when entities is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
+
+**Performance Notes:**
+- For EntityFrameworkCore: Uses `UpdateRange` and single `SaveChangesAsync` for optimal performance.
+- For MemoryRepository: Updates all entities in a single operation.
+
+**Example:**
+```csharp
+// Get customers to update
+var customers = await repository.Get(filter: c => c.City == "Seattle");
+
+// Apply discount to all
+foreach (var customer in customers)
+{
+    customer.DiscountPercent = 10;
+}
+
+var updated = await repository.UpdateRange(customers);
+Console.WriteLine($"Updated {updated.Count()} customers");
+
+// With cancellation token
+var cts = new CancellationTokenSource();
+var updated = await repository.UpdateRange(customers, cts.Token);
+```
+
+---
+
+##### DeleteRange (by entities)
+
+```csharp
+Task<int> DeleteRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+```
+
+Deletes multiple entities from the repository in a single operation.
+
+**Parameters:**
+- `entities` (IEnumerable<TEntity>): The collection of entities to delete. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
+
+**Returns:** Task<int> - The number of entities deleted.
+
+**Exceptions:**
+- `ArgumentNullException`: Thrown when entities is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
+
+**Performance Notes:**
+- For EntityFrameworkCore: Uses `RemoveRange` and single `SaveChangesAsync`.
+- For MemoryRepository: Removes all entities in a single operation.
+
+**Example:**
+```csharp
+// Get customers to delete
+var customersToDelete = await repository.Get(filter: c => !c.IsActive && c.LastLoginDate < DateTime.UtcNow.AddYears(-1));
+
+var deletedCount = await repository.DeleteRange(customersToDelete);
+Console.WriteLine($"Deleted {deletedCount} inactive customers");
+
+// With cancellation token
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+var deletedCount = await repository.DeleteRange(customersToDelete, cts.Token);
+```
+
+---
+
+##### DeleteRange (by filter)
+
+```csharp
+Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default)
+```
+
+Deletes all entities matching the specified filter in a single operation. This is the most efficient way to delete multiple entities.
+
+**Parameters:**
+- `filter` (Expression<Func<TEntity, bool>>): LINQ filter expression to identify entities to delete. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
+
+**Returns:** Task<int> - The number of entities deleted.
+
+**Exceptions:**
+- `ArgumentNullException`: Thrown when filter is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
+
+**Performance Notes:**
+- Most efficient method for bulk deletes - no need to load entities into memory first.
+- For EntityFrameworkCore: Fetches matching entities and deletes in a single operation.
+- For MemoryRepository: Evaluates filter and removes matches.
+
+**Example:**
+```csharp
+// Delete all products with price less than 10
+var deletedCount = await repository.DeleteRange(p => p.Price < 10);
+Console.WriteLine($"Deleted {deletedCount} low-priced products");
+
+// Delete all customers from a specific city
+var deletedCount = await repository.DeleteRange(c => c.City == "Seattle" && !c.IsActive);
+
+// Delete obsolete records
+var cutoffDate = DateTime.UtcNow.AddYears(-5);
+var deletedCount = await repository.DeleteRange(r => r.CreatedDate < cutoffDate);
+
+// With cancellation token
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+var deletedCount = await repository.DeleteRange(p => p.IsObsolete, cts.Token);
+```
+
+---
+
 ### IGenericRepository<TEntity>
 
 Backward-compatible generic repository interface for CRUD operations with integer primary keys.

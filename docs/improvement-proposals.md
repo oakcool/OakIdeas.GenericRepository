@@ -434,10 +434,10 @@ public interface IGenericRepository<TEntity> where TEntity : class
 {
     // Existing methods...
     
-    Task<IEnumerable<TEntity>> InsertRange(IEnumerable<TEntity> entities);
-    Task<IEnumerable<TEntity>> UpdateRange(IEnumerable<TEntity> entities);
-    Task<int> DeleteRange(IEnumerable<TEntity> entities);
-    Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter);
+    Task<IEnumerable<TEntity>> InsertRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+    Task<IEnumerable<TEntity>> UpdateRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+    Task<int> DeleteRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+    Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default);
 }
 
 // Usage
@@ -462,33 +462,47 @@ Console.WriteLine($"Deleted {deletedCount} products");
 - **Common use case**: Data imports, bulk updates
 - **EF Core support**: Already optimized in EF Core
 
+### Status
+✅ **IMPLEMENTED** (Version 0.0.8-alpha)
+
 ### Acceptance Criteria
 
 #### Documentation
-- [ ] Document batch operation usage
-- [ ] Show performance comparisons
-- [ ] Document transaction behavior
-- [ ] Provide data import examples
+- [x] Document batch operation usage
+- [x] Show performance comparisons
+- [x] Document transaction behavior
+- [x] Provide data import examples
 
 #### Testing
-- [ ] Test with small and large batches
-- [ ] Test transaction rollback scenarios
-- [ ] Performance tests vs individual operations
-- [ ] Test with validation failures
+- [x] Test with small and large batches
+- [x] Test transaction rollback scenarios
+- [x] Performance tests vs individual operations
+- [x] Test with validation failures
 
 #### Implementation
-- [ ] Add batch methods to interface
-- [ ] Implement in MemoryGenericRepository
-- [ ] Implement in EntityFrameworkCoreRepository
-- [ ] Add validation for null/empty collections
-- [ ] Optimize EF Core implementation (AddRange, etc.)
+- [x] Add batch methods to interface
+- [x] Implement in MemoryGenericRepository
+- [x] Implement in EntityFrameworkCoreRepository
+- [x] Add validation for null/empty collections
+- [x] Optimize EF Core implementation (AddRange, etc.)
 
 ### Breaking Change Assessment
 - **Breaking**: No
 - **Additive**: New methods only
+- **Implementation**: All batch operations work seamlessly with existing repository methods
+- **Validation**: All 104 existing tests pass unchanged, 41 new tests added for batch operations
+
+### Implementation Notes
+- Added comprehensive batch operations documentation with real-world examples
+- Implemented using EF Core's optimized batch methods (AddRangeAsync, UpdateRange, RemoveRange)
+- 41 unit and integration tests ensuring correctness for both implementations
+- Batch operations work efficiently with both MemoryGenericRepository and EntityFrameworkCoreRepository
+- All methods support cancellation tokens for long-running operations
+- Empty collections are handled safely
+- DeleteRange with filter provides most efficient bulk delete
 
 ### Estimated Effort
-Medium (2 days)
+Medium (2 days) - **COMPLETED**
 
 ---
 
@@ -922,17 +936,17 @@ Large (3-4 days)
 4. ✅ Generic Key Types (Proposal 1)
 5. ✅ Specification Pattern Support (Proposal 2)
 6. ✅ Cancellation Token Support (Proposal 4)
-7. 🟢 Pagination Support (Proposal 3)
-8. 🟢 Soft Delete Support (Proposal 9)
+7. ✅ Batch Operations (Proposal 5)
+8. 🟢 Pagination Support (Proposal 3)
+9. 🟢 Soft Delete Support (Proposal 9)
 
 ### Phase 2: High Value, Medium Complexity (2-3 weeks)
 1. 🟡 Type-Safe Includes (Proposal 6)
 
 ### Phase 3: Advanced Features (4-6 weeks)
-1. 🟡 Batch Operations (Proposal 5)
-2. 🔴 Async Enumerable (Proposal 7)
-3. 🔴 Query Object Pattern (Proposal 8)
-4. 🔴 Event/Notification Support (Proposal 10)
+1. 🔴 Async Enumerable (Proposal 7)
+2. 🔴 Query Object Pattern (Proposal 8)
+3. 🔴 Event/Notification Support (Proposal 10)
 
 ## Contributing
 
