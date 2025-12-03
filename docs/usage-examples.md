@@ -4,12 +4,132 @@ This document provides comprehensive examples of using OakIdeas.GenericRepositor
 
 ## Table of Contents
 
+- [Working with Different Key Types](#working-with-different-key-types)
 - [Basic CRUD Operations](#basic-crud-operations)
 - [Filtering and Querying](#filtering-and-querying)
 - [Ordering Results](#ordering-results)
 - [Eager Loading (Entity Framework Core)](#eager-loading-entity-framework-core)
 - [Complex Scenarios](#complex-scenarios)
 - [Error Handling](#error-handling)
+
+## Working with Different Key Types
+
+The generic repository supports multiple key types including int, Guid, long, and string. Choose the appropriate key type for your use case.
+
+### Integer Keys (Default, Backward Compatible)
+
+```csharp
+using OakIdeas.GenericRepository;
+using OakIdeas.GenericRepository.Models;
+
+// Define entity with int key (backward compatible)
+public class Product : EntityBase
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+
+// Use repository - IDs auto-generated starting from 1
+var repository = new MemoryGenericRepository<Product>();
+var product = new Product { Name = "Laptop", Price = 999.99m };
+var inserted = await repository.Insert(product);
+Console.WriteLine($"Created with ID: {inserted.ID}"); // e.g., "Created with ID: 1"
+```
+
+### Guid Keys (Recommended for Distributed Systems)
+
+```csharp
+// Define entity with Guid key
+public class Order : EntityBase<Guid>
+{
+    public DateTime OrderDate { get; set; }
+    public decimal Total { get; set; }
+    public string CustomerId { get; set; }
+}
+
+// Use repository with Guid keys - must provide ID
+var repository = new MemoryGenericRepository<Order, Guid>();
+var order = new Order 
+{ 
+    ID = Guid.NewGuid(),  // Generate unique ID
+    OrderDate = DateTime.UtcNow,
+    Total = 1599.99m
+};
+var inserted = await repository.Insert(order);
+Console.WriteLine($"Created with ID: {inserted.ID}");
+
+// Retrieve by Guid
+var retrieved = await repository.Get(inserted.ID);
+
+// Delete by Guid
+await repository.Delete(inserted.ID);
+```
+
+### Long Keys (For Large Datasets)
+
+```csharp
+// Define entity with long key
+public class Transaction : EntityBase<long>
+{
+    public decimal Amount { get; set; }
+    public DateTime Timestamp { get; set; }
+    public string AccountNumber { get; set; }
+}
+
+// Use repository with long keys
+var repository = new MemoryGenericRepository<Transaction, long>();
+var transaction = new Transaction 
+{ 
+    ID = 1000000000000L,  // Large ID for distributed/sharded systems
+    Amount = 250.00m,
+    Timestamp = DateTime.UtcNow
+};
+var inserted = await repository.Insert(transaction);
+
+// Retrieve by long
+var retrieved = await repository.Get(1000000000000L);
+```
+
+### String Keys (For Business/Natural Keys)
+
+```csharp
+// Define entity with string key
+public class Customer : EntityBase<string>
+{
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public DateTime JoinDate { get; set; }
+}
+
+// Use repository with string keys
+var repository = new MemoryGenericRepository<Customer, string>();
+var customer = new Customer 
+{ 
+    ID = "CUST-2024-001",  // Business-friendly ID
+    Name = "Acme Corporation",
+    Email = "contact@acme.com",
+    JoinDate = DateTime.UtcNow
+};
+var inserted = await repository.Insert(customer);
+
+// Retrieve by string
+var retrieved = await repository.Get("CUST-2024-001");
+
+// Filter works the same regardless of key type
+var recentCustomers = await repository.Get(
+    filter: c => c.JoinDate >= DateTime.UtcNow.AddDays(-30),
+    orderBy: q => q.OrderBy(c => c.Name)
+);
+```
+
+### Choosing the Right Key Type
+
+| Key Type | Best For | Pros | Cons |
+|----------|----------|------|------|
+| `int` | Simple apps, small datasets | Auto-generated, smallest storage, fastest | Limited range, not suitable for distributed systems |
+| `Guid` | Distributed systems, microservices | No collisions, can generate client-side | Larger storage, not sequential |
+| `long` | Large datasets, future-proofing | Wide range, sequential possible | Larger than int |
+| `string` | Business keys, external systems | Human-readable, flexible | Slower comparison, larger storage, no auto-generation |
 
 ## Basic CRUD Operations
 
