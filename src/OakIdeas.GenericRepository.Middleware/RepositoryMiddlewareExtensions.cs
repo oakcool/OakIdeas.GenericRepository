@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace OakIdeas.GenericRepository.Middleware;
@@ -56,10 +57,20 @@ public static class RepositoryMiddlewareExtensions
         if (options.Middlewares.Count == 0)
             return repository;
             
-        var middlewares = options.Middlewares
-            .OfType<IRepositoryMiddleware<TEntity, TKey>>()
-            .ToArray();
+        var middlewares = new List<IRepositoryMiddleware<TEntity, TKey>>();
+        foreach (var middleware in options.Middlewares)
+        {
+            if (middleware is IRepositoryMiddleware<TEntity, TKey> typedMiddleware)
+            {
+                middlewares.Add(typedMiddleware);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Middleware of type '{middleware?.GetType().FullName ?? "null"}' does not implement IRepositoryMiddleware<{typeof(TEntity).Name}, {typeof(TKey).Name}>");
+            }
+        }
             
-        return new ComposableRepository<TEntity, TKey>(repository, middlewares);
+        return new ComposableRepository<TEntity, TKey>(repository, middlewares.ToArray());
     }
 }
