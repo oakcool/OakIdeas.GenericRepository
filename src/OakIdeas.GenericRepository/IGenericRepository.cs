@@ -67,6 +67,42 @@ public interface IGenericRepository<TEntity, TKey> where TEntity : class
     /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>The updated entity</returns>
     Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Inserts multiple entities into the repository in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to insert</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The collection of inserted entities</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    Task<IEnumerable<TEntity>> InsertRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates multiple entities in the repository in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to update</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The collection of updated entities</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    Task<IEnumerable<TEntity>> UpdateRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes multiple entities from the repository in a single operation.
+    /// </summary>
+    /// <param name="entities">The collection of entities to delete</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The number of entities deleted</returns>
+    /// <exception cref="ArgumentNullException">Thrown when entities is null</exception>
+    Task<int> DeleteRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes all entities matching the specified filter in a single operation.
+    /// </summary>
+    /// <param name="filter">LINQ filter expression to identify entities to delete</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>The number of entities deleted</returns>
+    /// <exception cref="ArgumentNullException">Thrown when filter is null</exception>
+    Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
