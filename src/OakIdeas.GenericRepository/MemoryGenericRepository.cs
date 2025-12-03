@@ -22,6 +22,7 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
 {
     private readonly ConcurrentDictionary<TKey, TEntity> _data = new();
     private int _nextId = 1;
+    private static readonly bool _isIntKey = typeof(TKey) == typeof(int);
 
     /// <summary>
     /// Deletes an entity from the repository.
@@ -112,7 +113,7 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     {
         ThrowIfNull(entity);
 
-        if (EqualityComparer<TKey>.Default.Equals(entity.ID, default!) && typeof(TKey) == typeof(int))
+        if (_isIntKey && EqualityComparer<TKey>.Default.Equals(entity.ID, default!))
         {
             entity.ID = (TKey)(object)await GetNextID();
         }
