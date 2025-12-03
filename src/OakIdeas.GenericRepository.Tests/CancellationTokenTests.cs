@@ -30,7 +30,6 @@ namespace OakIdeas.GenericRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OperationCanceledException))]
         public async Task Insert_WithCancelledToken_ShouldThrow()
         {
             // Arrange
@@ -39,10 +38,10 @@ namespace OakIdeas.GenericRepository.Tests
             cts.Cancel();
             var customer = new Customer { Name = _entityDefaultName };
 
-            // Act
-            await repository.Insert(customer, cts.Token);
-
-            // Assert - Exception expected
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+                async () => await repository.Insert(customer, cts.Token)
+            );
         }
 
         [TestMethod]
@@ -62,7 +61,6 @@ namespace OakIdeas.GenericRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OperationCanceledException))]
         public async Task Get_WithCancelledToken_ShouldThrow()
         {
             // Arrange
@@ -71,10 +69,10 @@ namespace OakIdeas.GenericRepository.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            // Act
-            await repository.Get(customer.ID, cts.Token);
-
-            // Assert - Exception expected
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+                async () => await repository.Get(customer.ID, cts.Token)
+            );
         }
 
         [TestMethod]
@@ -93,7 +91,6 @@ namespace OakIdeas.GenericRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OperationCanceledException))]
         public async Task GetAll_WithCancelledToken_ShouldThrow()
         {
             // Arrange
@@ -102,10 +99,10 @@ namespace OakIdeas.GenericRepository.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            // Act
-            await repository.Get(cancellationToken: cts.Token);
-
-            // Assert - Exception expected
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+                async () => await repository.Get(cancellationToken: cts.Token)
+            );
         }
 
         [TestMethod]
@@ -126,7 +123,6 @@ namespace OakIdeas.GenericRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OperationCanceledException))]
         public async Task Update_WithCancelledToken_ShouldThrow()
         {
             // Arrange
@@ -136,10 +132,10 @@ namespace OakIdeas.GenericRepository.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            // Act
-            await repository.Update(customer, cts.Token);
-
-            // Assert - Exception expected
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+                async () => await repository.Update(customer, cts.Token)
+            );
         }
 
         [TestMethod]
@@ -160,7 +156,6 @@ namespace OakIdeas.GenericRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OperationCanceledException))]
         public async Task Delete_WithCancelledToken_ShouldThrow()
         {
             // Arrange
@@ -169,10 +164,10 @@ namespace OakIdeas.GenericRepository.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            // Act
-            await repository.Delete(customer, cts.Token);
-
-            // Assert - Exception expected
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+                async () => await repository.Delete(customer, cts.Token)
+            );
         }
 
         [TestMethod]
@@ -193,7 +188,6 @@ namespace OakIdeas.GenericRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OperationCanceledException))]
         public async Task DeleteById_WithCancelledToken_ShouldThrow()
         {
             // Arrange
@@ -202,10 +196,10 @@ namespace OakIdeas.GenericRepository.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            // Act
-            await repository.Delete(customer.ID, cts.Token);
-
-            // Assert - Exception expected
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+                async () => await repository.Delete(customer.ID, cts.Token)
+            );
         }
 
         [TestMethod]
@@ -228,7 +222,6 @@ namespace OakIdeas.GenericRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OperationCanceledException))]
         public async Task GetFiltered_WithCancelledToken_ShouldThrow()
         {
             // Arrange
@@ -237,12 +230,12 @@ namespace OakIdeas.GenericRepository.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            // Act
-            await repository.Get(
-                filter: c => c.Name == "Customer A",
-                cancellationToken: cts.Token);
-
-            // Assert - Exception expected
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+                async () => await repository.Get(
+                    filter: c => c.Name == "Customer A",
+                    cancellationToken: cts.Token)
+            );
         }
 
         [TestMethod]

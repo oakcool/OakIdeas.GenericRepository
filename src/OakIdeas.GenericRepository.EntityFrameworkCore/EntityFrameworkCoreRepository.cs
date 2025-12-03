@@ -55,10 +55,13 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
             query = query.Include(includeProperty);
         }
 
-        // Sort
-        return orderBy is not null 
-            ? orderBy(query).ToList() 
-            : await query.ToListAsync(cancellationToken);
+        // Sort and return
+        if (orderBy is not null)
+        {
+            return await orderBy(query).ToListAsync(cancellationToken);
+        }
+        
+        return await query.ToListAsync(cancellationToken);
     }
 
     /// <summary>
