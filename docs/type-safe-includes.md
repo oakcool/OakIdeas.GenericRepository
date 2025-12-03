@@ -12,7 +12,7 @@ Type-safe include properties provide compile-time checking and IntelliSense supp
 // ❌ String-based includes (old approach)
 var orders = await repository.Get(
     filter: o => o.IsActive,
-    includeProperties: "Custmer,Items" // Typo! Runtime error
+    includeProperties: "Customer,Items" // Typo would cause runtime error
 );
 ```
 
