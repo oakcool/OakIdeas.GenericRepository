@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakIdeas.GenericRepository.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakIdeas.GenericRepository.Memory", "OakIdeas.GenericRepository.Memory\OakIdeas.GenericRepository.Memory.csproj", "{38C66F05-48F3-4A60-9410-B3CCD76B0D00}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakIdeas.GenericRepository.Middleware.Tests", "OakIdeas.GenericRepository.Middleware.Tests\OakIdeas.GenericRepository.Middleware.Tests.csproj", "{D95CF863-FE19-4314-9D37-EADE816BD63C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -102,6 +104,18 @@ Global
 		{38C66F05-48F3-4A60-9410-B3CCD76B0D00}.Release|x64.Build.0 = Release|Any CPU
 		{38C66F05-48F3-4A60-9410-B3CCD76B0D00}.Release|x86.ActiveCfg = Release|Any CPU
 		{38C66F05-48F3-4A60-9410-B3CCD76B0D00}.Release|x86.Build.0 = Release|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Debug|x64.Build.0 = Debug|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Debug|x86.Build.0 = Debug|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Release|x64.ActiveCfg = Release|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Release|x64.Build.0 = Release|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Release|x86.ActiveCfg = Release|Any CPU
+		{D95CF863-FE19-4314-9D37-EADE816BD63C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
