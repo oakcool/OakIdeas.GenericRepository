@@ -325,6 +325,48 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     }
 
     /// <summary>
+    /// Gets entities using a query object that encapsulates all query parameters.
+    /// This method provides a fluent, reusable way to build complex queries.
+    /// Note: AsNoTracking is ignored in the memory repository as it doesn't use entity tracking.
+    /// </summary>
+    /// <param name="query">The query object containing filter, ordering, includes, and pagination configuration</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>Collection of entities matching the query criteria</returns>
+    /// <exception cref="ArgumentNullException">Thrown when query is null</exception>
+    public Task<IEnumerable<TEntity>> Get(Query<TEntity> query, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ThrowIfNull(query);
+
+        IQueryable<TEntity> queryable = _data.Values.AsQueryable();
+
+        // Apply filter
+        if (query.Filter is not null)
+        {
+            queryable = queryable.Where(query.Filter);
+        }
+
+        // Apply ordering
+        if (query.OrderBy is not null)
+        {
+            queryable = query.OrderBy(queryable);
+        }
+
+        // Apply pagination
+        if (query.Skip.HasValue)
+        {
+            queryable = queryable.Skip(query.Skip.Value);
+        }
+
+        if (query.Take.HasValue)
+        {
+            queryable = queryable.Take(query.Take.Value);
+        }
+
+        return Task.FromResult<IEnumerable<TEntity>>(queryable.ToList());
+    }
+
+    /// <summary>
     /// Generates the next available ID for a new entity.
     /// Uses atomic increment for O(1) performance and thread safety.
     /// Only applicable for integer keys.
