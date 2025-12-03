@@ -120,6 +120,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
         if (!string.IsNullOrEmpty(_deletedBy))
         {
             entityToDelete.DeletedBy = _deletedBy;
+            _deletedBy = null; // Clear after use to avoid unintended reuse
         }
         
         var updated = await Update(entityToDelete, cancellationToken);
@@ -148,14 +149,16 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
 
         var entityList = entities.ToList();
         var now = DateTime.UtcNow;
+        var deletedBy = _deletedBy;
+        _deletedBy = null; // Clear after capturing to avoid unintended reuse
 
         foreach (var entity in entityList)
         {
             entity.IsDeleted = true;
             entity.DeletedAt = now;
-            if (!string.IsNullOrEmpty(_deletedBy))
+            if (!string.IsNullOrEmpty(deletedBy))
             {
-                entity.DeletedBy = _deletedBy;
+                entity.DeletedBy = deletedBy;
             }
         }
 

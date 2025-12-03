@@ -149,6 +149,11 @@ public class SoftDeleteMemoryRepository<TEntity, TKey> : IGenericRepository<TEnt
 
         entityToDelete.IsDeleted = true;
         entityToDelete.DeletedAt = DateTime.UtcNow;
+        if (!string.IsNullOrEmpty(_deletedBy))
+        {
+            entityToDelete.DeletedBy = _deletedBy;
+            _deletedBy = null; // Clear after use
+        }
         
         var updated = await _innerRepository.Update(entityToDelete, cancellationToken);
         return updated != null;
@@ -175,15 +180,23 @@ public class SoftDeleteMemoryRepository<TEntity, TKey> : IGenericRepository<TEnt
             throw new ArgumentNullException(nameof(entities));
 
         var entityList = entities.ToList();
-        var deletedCount = 0;
+        var now = DateTime.UtcNow;
+        var deletedBy = _deletedBy;
+        _deletedBy = null; // Clear after capturing
 
         foreach (var entity in entityList)
         {
-            if (await Delete(entity, cancellationToken))
-                deletedCount++;
+            entity.IsDeleted = true;
+            entity.DeletedAt = now;
+            if (!string.IsNullOrEmpty(deletedBy))
+            {
+                entity.DeletedBy = deletedBy;
+            }
         }
 
-        return deletedCount;
+        // Use UpdateRange for efficiency
+        await _innerRepository.UpdateRange(entityList, cancellationToken);
+        return entityList.Count;
     }
 
     /// <summary>
