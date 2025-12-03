@@ -7,6 +7,8 @@ using OakIdeas.GenericRepository.Middleware.Standard;
 using OakIdeas.GenericRepository.Models;
 using Xunit;
 
+#pragma warning disable CS0618 // Type or member is obsolete - testing backward compatibility
+
 namespace OakIdeas.GenericRepository.Middleware.Tests;
 
 public class ValidatedEntity : EntityBase
@@ -27,7 +29,7 @@ public class ValidationMiddlewareTests
         // Arrange
         var innerRepository = new MemoryGenericRepository<ValidatedEntity>();
         var validationMiddleware = new ValidationMiddleware<ValidatedEntity, int>();
-        var repository = new MiddlewareRepository<ValidatedEntity>(
+        var repository = new MiddlewareRepository<ValidatedEntity, int>(
             innerRepository,
             validationMiddleware);
 
@@ -46,7 +48,7 @@ public class ValidationMiddlewareTests
         // Arrange
         var innerRepository = new MemoryGenericRepository<ValidatedEntity>();
         var validationMiddleware = new ValidationMiddleware<ValidatedEntity, int>();
-        var repository = new MiddlewareRepository<ValidatedEntity>(
+        var repository = new MiddlewareRepository<ValidatedEntity, int>(
             innerRepository,
             validationMiddleware);
 
@@ -65,7 +67,7 @@ public class ValidationMiddlewareTests
         // Arrange
         var innerRepository = new MemoryGenericRepository<ValidatedEntity>();
         var validationMiddleware = new ValidationMiddleware<ValidatedEntity, int>();
-        var repository = new MiddlewareRepository<ValidatedEntity>(
+        var repository = new MiddlewareRepository<ValidatedEntity, int>(
             innerRepository,
             validationMiddleware);
 
@@ -86,7 +88,7 @@ public class ValidationMiddlewareTests
         // Arrange
         var innerRepository = new MemoryGenericRepository<ValidatedEntity>();
         var validationMiddleware = new ValidationMiddleware<ValidatedEntity, int>();
-        var repository = new MiddlewareRepository<ValidatedEntity>(
+        var repository = new MiddlewareRepository<ValidatedEntity, int>(
             innerRepository,
             validationMiddleware);
 
@@ -106,7 +108,7 @@ public class ValidationMiddlewareTests
         // Arrange
         var innerRepository = new MemoryGenericRepository<ValidatedEntity>();
         var validationMiddleware = new ValidationMiddleware<ValidatedEntity, int>();
-        var repository = new MiddlewareRepository<ValidatedEntity>(
+        var repository = new MiddlewareRepository<ValidatedEntity, int>(
             innerRepository,
             validationMiddleware);
 
@@ -136,7 +138,7 @@ public class ValidationMiddlewareTests
         // Arrange
         var innerRepository = new MemoryGenericRepository<ValidatedEntity>();
         var validationMiddleware = new ValidationMiddleware<ValidatedEntity, int>();
-        var repository = new MiddlewareRepository<ValidatedEntity>(
+        var repository = new MiddlewareRepository<ValidatedEntity, int>(
             innerRepository,
             validationMiddleware);
 

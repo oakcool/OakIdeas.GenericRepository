@@ -50,6 +50,19 @@ var repository = new MemoryGenericRepository<Customer>()
         .UseMiddleware(new AuditMiddleware<Customer, int>(auditLog)));
 ```
 
+### ComposableRepository (Advanced)
+
+For advanced scenarios where you need direct control:
+
+```csharp
+var innerRepository = new MemoryGenericRepository<Customer>();
+var repository = new ComposableRepository<Customer, int>(
+    innerRepository,
+    new LoggingMiddleware<Customer, int>(logger),
+    new ValidationMiddleware<Customer, int>(),
+    new AuditMiddleware<Customer, int>(auditLog));
+```
+
 ### Dependency Injection
 
 ```csharp

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OakIdeas.GenericRepository.Middleware;
+namespace OakIdeas.GenericRepository;
 
 /// <summary>
 /// Configuration options for repositories with middleware support.
@@ -12,19 +12,19 @@ public class RepositoryOptions<TEntity, TKey>
     where TEntity : class
     where TKey : notnull
 {
-    private readonly List<IRepositoryMiddleware<TEntity, TKey>> _middlewares = new();
+    private readonly List<object> _middlewares = new();
 
     /// <summary>
     /// Gets the list of middleware components to apply to repository operations.
     /// </summary>
-    public IReadOnlyList<IRepositoryMiddleware<TEntity, TKey>> Middlewares => _middlewares;
+    public IReadOnlyList<object> Middlewares => _middlewares;
 
     /// <summary>
     /// Adds a middleware component to the pipeline.
     /// </summary>
     /// <param name="middleware">The middleware to add</param>
     /// <returns>This options instance for fluent chaining</returns>
-    public RepositoryOptions<TEntity, TKey> UseMiddleware(IRepositoryMiddleware<TEntity, TKey> middleware)
+    public RepositoryOptions<TEntity, TKey> UseMiddleware(object middleware)
     {
         if (middleware == null)
             throw new ArgumentNullException(nameof(middleware));
@@ -39,7 +39,7 @@ public class RepositoryOptions<TEntity, TKey>
     /// <param name="middlewares">The middlewares to add</param>
     /// <returns>This options instance for fluent chaining</returns>
     /// <exception cref="ArgumentNullException">Thrown when middlewares array is null or contains null items</exception>
-    public RepositoryOptions<TEntity, TKey> UseMiddlewares(params IRepositoryMiddleware<TEntity, TKey>[] middlewares)
+    public RepositoryOptions<TEntity, TKey> UseMiddlewares(params object[] middlewares)
     {
         if (middlewares == null)
             throw new ArgumentNullException(nameof(middlewares));
@@ -69,7 +69,7 @@ public class RepositoryOptions<TEntity, TKey>
     /// Converts the middleware list to an array.
     /// </summary>
     /// <returns>Array of middleware components</returns>
-    internal IRepositoryMiddleware<TEntity, TKey>[] ToArray()
+    internal object[] ToArray()
     {
         return _middlewares.ToArray();
     }

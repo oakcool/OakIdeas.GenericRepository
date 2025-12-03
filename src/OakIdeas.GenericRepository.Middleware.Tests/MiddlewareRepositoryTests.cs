@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using OakIdeas.GenericRepository.Middleware.Standard;
 using Xunit;
 
+#pragma warning disable CS0618 // Type or member is obsolete - testing backward compatibility
+
 namespace OakIdeas.GenericRepository.Middleware.Tests;
 
 public class MiddlewareRepositoryTests
@@ -18,7 +20,7 @@ public class MiddlewareRepositoryTests
             log => logs.Add(log),
             logPerformance: false);
         
-        var repository = new MiddlewareRepository<TestEntity>(
+        var repository = new MiddlewareRepository<TestEntity, int>(
             innerRepository,
             loggingMiddleware);
 
@@ -49,7 +51,7 @@ public class MiddlewareRepositoryTests
         var performanceMiddleware = new PerformanceMiddleware<TestEntity, int>(
             (operation, duration) => metrics[operation] = duration);
         
-        var repository = new MiddlewareRepository<TestEntity>(
+        var repository = new MiddlewareRepository<TestEntity, int>(
             innerRepository,
             performanceMiddleware);
 
@@ -75,7 +77,7 @@ public class MiddlewareRepositoryTests
             entry => auditEntries.Add(entry),
             () => "TestUser");
         
-        var repository = new MiddlewareRepository<TestEntity>(
+        var repository = new MiddlewareRepository<TestEntity, int>(
             innerRepository,
             auditMiddleware);
 
@@ -111,7 +113,7 @@ public class MiddlewareRepositoryTests
         var middleware1 = new TestMiddleware<TestEntity, int>("MW1", executionOrder);
         var middleware2 = new TestMiddleware<TestEntity, int>("MW2", executionOrder);
         
-        var repository = new MiddlewareRepository<TestEntity>(
+        var repository = new MiddlewareRepository<TestEntity, int>(
             innerRepository,
             middleware1,
             middleware2);
@@ -133,7 +135,7 @@ public class MiddlewareRepositoryTests
     {
         // Arrange
         var innerRepository = new MemoryGenericRepository<TestEntity>();
-        var repository = new MiddlewareRepository<TestEntity>(innerRepository);
+        var repository = new MiddlewareRepository<TestEntity, int>(innerRepository);
 
         // Act
         var entity = new TestEntity { Name = "Test", Value = 42 };
@@ -156,7 +158,7 @@ public class MiddlewareRepositoryTests
             log => logs.Add(log),
             logPerformance: false);
         
-        var repository = new MiddlewareRepository<TestEntity>(
+        var repository = new MiddlewareRepository<TestEntity, int>(
             innerRepository,
             loggingMiddleware);
 
@@ -181,7 +183,7 @@ public class MiddlewareRepositoryTests
         var auditMiddleware = new AuditMiddleware<TestEntity, int>(
             entry => auditEntries.Add(entry));
         
-        var repository = new MiddlewareRepository<TestEntity>(
+        var repository = new MiddlewareRepository<TestEntity, int>(
             innerRepository,
             auditMiddleware);
 

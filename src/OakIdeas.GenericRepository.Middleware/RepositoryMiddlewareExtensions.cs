@@ -1,8 +1,7 @@
 using System;
 using System.Linq;
-using OakIdeas.GenericRepository.Middleware;
 
-namespace OakIdeas.GenericRepository;
+namespace OakIdeas.GenericRepository.Middleware;
 
 /// <summary>
 /// Extension methods for registering middleware with repositories.
@@ -29,7 +28,7 @@ public static class RepositoryMiddlewareExtensions
         if (middlewares == null || middlewares.Length == 0)
             return repository;
             
-        return new MiddlewareRepository<TEntity, TKey>(repository, middlewares);
+        return new ComposableRepository<TEntity, TKey>(repository, middlewares);
     }
 
     /// <summary>
@@ -57,6 +56,10 @@ public static class RepositoryMiddlewareExtensions
         if (options.Middlewares.Count == 0)
             return repository;
             
-        return new MiddlewareRepository<TEntity, TKey>(repository, options.Middlewares.ToArray());
+        var middlewares = options.Middlewares
+            .OfType<IRepositoryMiddleware<TEntity, TKey>>()
+            .ToArray();
+            
+        return new ComposableRepository<TEntity, TKey>(repository, middlewares);
     }
 }

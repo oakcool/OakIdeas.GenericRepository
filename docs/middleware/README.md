@@ -91,18 +91,32 @@ public class MyMiddleware<TEntity, TKey> : RepositoryMiddlewareBase<TEntity, TKe
 }
 ```
 
-### MiddlewareRepository<TEntity, TKey>
+### ComposableRepository<TEntity, TKey>
 
-A repository decorator that applies middleware to repository operations:
+A repository decorator that applies middleware to repository operations.
+
+**Using Extension Methods (Recommended):**
 
 ```csharp
-var repository = new MiddlewareRepository<Customer>(
+var repository = new MemoryGenericRepository<Customer>()
+    .WithLogging(logger)
+    .WithValidation()
+    .WithAuditing(auditLog);
+```
+
+**Direct Instantiation (Advanced):**
+
+```csharp
+var repository = new ComposableRepository<Customer, int>(
     new MemoryGenericRepository<Customer>(),
     middleware1,
     middleware2,
     middleware3
 );
 ```
+
+**Note:** `MiddlewareRepository` is deprecated in favor of `ComposableRepository`. Existing code using `MiddlewareRepository` will continue to work.
+
 
 ## Basic Usage
 
