@@ -8,7 +8,9 @@ namespace OakIdeas.GenericRepository.Middleware;
 /// </summary>
 /// <typeparam name="TEntity">The entity type</typeparam>
 /// <typeparam name="TKey">The type of the primary key</typeparam>
-public class RepositoryOptions<TEntity, TKey> where TEntity : class
+public class RepositoryOptions<TEntity, TKey> 
+    where TEntity : class
+    where TKey : notnull
 {
     private readonly List<IRepositoryMiddleware<TEntity, TKey>> _middlewares = new();
 
@@ -36,6 +38,7 @@ public class RepositoryOptions<TEntity, TKey> where TEntity : class
     /// </summary>
     /// <param name="middlewares">The middlewares to add</param>
     /// <returns>This options instance for fluent chaining</returns>
+    /// <exception cref="ArgumentNullException">Thrown when middlewares array is null or contains null items</exception>
     public RepositoryOptions<TEntity, TKey> UseMiddlewares(params IRepositoryMiddleware<TEntity, TKey>[] middlewares)
     {
         if (middlewares == null)
@@ -43,10 +46,11 @@ public class RepositoryOptions<TEntity, TKey> where TEntity : class
             
         foreach (var middleware in middlewares)
         {
-            if (middleware != null)
+            if (middleware == null)
             {
-                _middlewares.Add(middleware);
+                throw new ArgumentNullException(nameof(middleware), "Middleware array contains null item");
             }
+            _middlewares.Add(middleware);
         }
         return this;
     }
