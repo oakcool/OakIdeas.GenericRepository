@@ -322,8 +322,6 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
             cancellationToken.ThrowIfCancellationRequested();
             yield return entity;
         }
-
-        await Task.CompletedTask; // Ensure async method
     }
 
     /// <summary>
