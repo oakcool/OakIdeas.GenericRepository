@@ -45,6 +45,8 @@ public class Query<TEntity> where TEntity : class
 
     /// <summary>
     /// Adds a filter expression to the query.
+    /// Note: Calling this method multiple times will replace the previous filter.
+    /// To combine multiple filters, use && in a single expression or use the Specification pattern.
     /// </summary>
     /// <param name="filter">The filter expression</param>
     /// <returns>This query instance for fluent chaining</returns>
@@ -73,7 +75,7 @@ public class Query<TEntity> where TEntity : class
             throw new ArgumentNullException(nameof(orderBy));
         }
 
-        this.OrderBy = orderBy;
+        OrderBy = orderBy;
         return this;
     }
 
