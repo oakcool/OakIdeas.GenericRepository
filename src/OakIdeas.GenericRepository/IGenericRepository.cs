@@ -132,6 +132,16 @@ public interface IGenericRepository<TEntity, TKey> where TEntity : class
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
         string includeProperties = "",
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets entities using a query object that encapsulates all query parameters.
+    /// This method provides a fluent, reusable way to build complex queries.
+    /// </summary>
+    /// <param name="query">The query object containing filter, ordering, includes, pagination, and tracking configuration</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>Collection of entities matching the query criteria</returns>
+    /// <exception cref="ArgumentNullException">Thrown when query is null</exception>
+    Task<IEnumerable<TEntity>> Get(Query<TEntity> query, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

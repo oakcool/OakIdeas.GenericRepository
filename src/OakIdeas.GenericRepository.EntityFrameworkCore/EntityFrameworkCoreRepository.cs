@@ -319,6 +319,62 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
         }
     }
 
+    /// <summary>
+    /// Gets entities using a query object that encapsulates all query parameters.
+    /// This method provides a fluent, reusable way to build complex queries.
+    /// </summary>
+    /// <param name="query">The query object containing filter, ordering, includes, pagination, and tracking configuration</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <returns>Collection of entities matching the query criteria</returns>
+    /// <exception cref="ArgumentNullException">Thrown when query is null</exception>
+    public virtual async Task<IEnumerable<TEntity>> Get(Query<TEntity> query, CancellationToken cancellationToken = default)
+    {
+        ThrowIfNull(query);
+
+        // Start with the dbSet
+        IQueryable<TEntity> queryable = dbSet;
+
+        // Apply no-tracking if requested
+        if (query.AsNoTracking)
+        {
+            queryable = queryable.AsNoTracking();
+        }
+
+        // Apply filter
+        if (query.Filter is not null)
+        {
+            queryable = queryable.Where(query.Filter);
+        }
+
+        // Apply includes
+        if (query.Includes is not null)
+        {
+            foreach (var include in query.Includes)
+            {
+                queryable = queryable.Include(include);
+            }
+        }
+
+        // Apply ordering
+        if (query.OrderBy is not null)
+        {
+            queryable = query.OrderBy(queryable);
+        }
+
+        // Apply pagination
+        if (query.Skip.HasValue)
+        {
+            queryable = queryable.Skip(query.Skip.Value);
+        }
+
+        if (query.Take.HasValue)
+        {
+            queryable = queryable.Take(query.Take.Value);
+        }
+
+        return await queryable.ToListAsync(cancellationToken);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ThrowIfNull(object? argument, [CallerArgumentExpression(nameof(argument))] string? paramName = null)
     {
