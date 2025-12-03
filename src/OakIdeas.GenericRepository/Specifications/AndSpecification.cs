@@ -37,7 +37,12 @@ public class AndSpecification<T> : Specification<T>
         var leftBody = new ParameterReplacer(parameter).Visit(leftExpression.Body);
         var rightBody = new ParameterReplacer(parameter).Visit(rightExpression.Body);
 
-        var body = Expression.AndAlso(leftBody!, rightBody!);
+        if (leftBody == null || rightBody == null)
+        {
+            throw new InvalidOperationException("Failed to replace parameters in specification expressions.");
+        }
+
+        var body = Expression.AndAlso(leftBody, rightBody);
         
         return Expression.Lambda<Func<T, bool>>(body, parameter);
     }

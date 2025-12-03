@@ -30,7 +30,13 @@ public class NotSpecification<T> : Specification<T>
         var parameter = Expression.Parameter(typeof(T));
         
         var body = new ParameterReplacer(parameter).Visit(expression.Body);
-        var notBody = Expression.Not(body!);
+
+        if (body == null)
+        {
+            throw new InvalidOperationException("Failed to replace parameters in specification expression.");
+        }
+
+        var notBody = Expression.Not(body);
         
         return Expression.Lambda<Func<T, bool>>(notBody, parameter);
     }
