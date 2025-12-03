@@ -2,6 +2,67 @@
 
 Complete reference documentation for all public APIs in OakIdeas.GenericRepository.
 
+## Cancellation Token Support
+
+All async methods in the repository interfaces support cancellation tokens for proper cancellation support. This is essential for:
+
+- **Responsiveness**: Cancel operations when user navigates away
+- **Resource efficiency**: Stop unnecessary database operations  
+- **ASP.NET Core best practice**: Request cancellation when client disconnects
+- **Timeouts**: Implement query timeouts easily
+
+### Usage
+
+All async methods accept an optional `CancellationToken` parameter with a default value, maintaining full backward compatibility:
+
+```csharp
+// Without cancellation token (backward compatible)
+var customer = await repository.Get(1);
+
+// With cancellation token
+var cts = new CancellationTokenSource();
+var customer = await repository.Get(1, cts.Token);
+
+// With timeout
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+try
+{
+    var customers = await repository.Get(
+        filter: c => c.IsActive,
+        cancellationToken: cts.Token
+    );
+}
+catch (OperationCanceledException)
+{
+    // Handle cancellation
+}
+```
+
+### ASP.NET Core Integration
+
+ASP.NET Core automatically provides a cancellation token that fires when the client disconnects:
+
+```csharp
+[HttpGet("{id}")]
+public async Task<ActionResult<Customer>> GetCustomer(int id, CancellationToken cancellationToken)
+{
+    var customer = await _repository.Get(id, cancellationToken);
+    if (customer == null)
+        return NotFound();
+    
+    return Ok(customer);
+}
+
+[HttpPost]
+public async Task<ActionResult<Customer>> CreateCustomer(
+    [FromBody] Customer customer, 
+    CancellationToken cancellationToken)
+{
+    var created = await _repository.Insert(customer, cancellationToken);
+    return CreatedAtAction(nameof(GetCustomer), new { id = created.ID }, created);
+}
+```
+
 ## Interfaces
 
 ### IGenericRepository<TEntity, TKey>
@@ -22,18 +83,20 @@ Generic repository interface for CRUD operations with support for different prim
 ##### Insert
 
 ```csharp
-Task<TEntity> Insert(TEntity entity)
+Task<TEntity> Insert(TEntity entity, CancellationToken cancellationToken = default)
 ```
 
 Inserts a new entity into the repository.
 
 **Parameters:**
 - `entity` (TEntity): The entity to insert. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
 
 **Returns:** Task<TEntity> - The inserted entity with generated ID.
 
 **Exceptions:**
 - `ArgumentNullException`: Thrown when entity is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
 
 **Example:**
 ```csharp
@@ -47,6 +110,18 @@ var intRepository = new MemoryGenericRepository<Customer>();
 var customer2 = new Customer { Name = "Jane Doe" };
 var inserted2 = await intRepository.Insert(customer2);
 Console.WriteLine($"Created with ID: {inserted2.ID}");
+
+// With cancellation token
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+try
+{
+    var customer3 = new Customer { Name = "Timeout Test" };
+    var inserted3 = await repository.Insert(customer3, cts.Token);
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Insert operation was cancelled");
+}
 ```
 
 ---
@@ -54,18 +129,20 @@ Console.WriteLine($"Created with ID: {inserted2.ID}");
 ##### Get (by ID)
 
 ```csharp
-Task<TEntity?> Get(TKey id)
+Task<TEntity?> Get(TKey id, CancellationToken cancellationToken = default)
 ```
 
 Gets an entity by its primary key.
 
 **Parameters:**
 - `id` (TKey): The primary key value. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
 
 **Returns:** Task<TEntity?> - The entity if found, null otherwise.
 
 **Exceptions:**
 - `ArgumentNullException`: Thrown when id is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
 
 **Example:**
 ```csharp
@@ -82,6 +159,10 @@ if (customer != null)
 {
     Console.WriteLine(customer.Name);
 }
+
+// With cancellation token and timeout
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+var customer = await repository.Get(1, cts.Token);
 ```
 
 ---
@@ -92,7 +173,8 @@ if (customer != null)
 Task<IEnumerable<TEntity>> Get(
     Expression<Func<TEntity, bool>>? filter = null,
     Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
-    string includeProperties = "")
+    string includeProperties = "",
+    CancellationToken cancellationToken = default)
 ```
 
 Gets entities with optional filtering, ordering, and eager loading.
@@ -101,8 +183,12 @@ Gets entities with optional filtering, ordering, and eager loading.
 - `filter` (Expression<Func<TEntity, bool>>, optional): LINQ filter expression to apply.
 - `orderBy` (Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>, optional): Function to order results.
 - `includeProperties` (string, optional): Comma-separated list of navigation properties to include (EF Core only).
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
 
 **Returns:** Task<IEnumerable<TEntity>> - Collection of entities matching the criteria.
+
+**Exceptions:**
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
 
 **Example:**
 ```csharp
@@ -112,6 +198,14 @@ var customers = await repository.Get(
     orderBy: q => q.OrderBy(c => c.Name),
     includeProperties: "Orders,Address"
 );
+
+// With cancellation token
+var cts = new CancellationTokenSource();
+var customers = await repository.Get(
+    filter: c => c.IsActive,
+    orderBy: q => q.OrderBy(c => c.Name),
+    cancellationToken: cts.Token
+);
 ```
 
 ---
@@ -119,18 +213,20 @@ var customers = await repository.Get(
 ##### Update
 
 ```csharp
-Task<TEntity> Update(TEntity entityToUpdate)
+Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken = default)
 ```
 
 Updates an existing entity in the repository.
 
 **Parameters:**
 - `entityToUpdate` (TEntity): The entity with updated values. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
 
 **Returns:** Task<TEntity> - The updated entity.
 
 **Exceptions:**
 - `ArgumentNullException`: Thrown when entityToUpdate is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
 
 **Notes:**
 - For EntityFrameworkCore: Entity is attached and marked as modified.
@@ -141,6 +237,10 @@ Updates an existing entity in the repository.
 var customer = await repository.Get(1);
 customer.Email = "newemail@example.com";
 var updated = await repository.Update(customer);
+
+// With cancellation token
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+var updated = await repository.Update(customer, cts.Token);
 ```
 
 ---
@@ -148,23 +248,29 @@ var updated = await repository.Update(customer);
 ##### Delete (by entity)
 
 ```csharp
-Task<bool> Delete(TEntity entityToDelete)
+Task<bool> Delete(TEntity entityToDelete, CancellationToken cancellationToken = default)
 ```
 
 Deletes an entity from the repository.
 
 **Parameters:**
 - `entityToDelete` (TEntity): The entity to delete. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
 
 **Returns:** Task<bool> - True if deletion was successful, false otherwise.
 
 **Exceptions:**
 - `ArgumentNullException`: Thrown when entityToDelete is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
 
 **Example:**
 ```csharp
 var customer = await repository.Get(1);
 var deleted = await repository.Delete(customer);
+
+// With cancellation token
+var cts = new CancellationTokenSource();
+var deleted = await repository.Delete(customer, cts.Token);
 ```
 
 ---
@@ -172,18 +278,20 @@ var deleted = await repository.Delete(customer);
 ##### Delete (by ID)
 
 ```csharp
-Task<bool> Delete(TKey id)
+Task<bool> Delete(TKey id, CancellationToken cancellationToken = default)
 ```
 
 Deletes an entity by its primary key.
 
 **Parameters:**
 - `id` (TKey): The primary key value. Cannot be null.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
 
 **Returns:** Task<bool> - True if deletion was successful, false otherwise.
 
 **Exceptions:**
 - `ArgumentNullException`: Thrown when id is null.
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
 
 **Example:**
 ```csharp
@@ -195,6 +303,10 @@ var deleted = await repository.Delete(Guid.Parse("..."));
 
 // With string keys
 var deleted = await repository.Delete("CUST-001");
+
+// With cancellation token
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+var deleted = await repository.Delete(1, cts.Token);
 ```
 
 ---

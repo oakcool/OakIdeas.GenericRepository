@@ -9,6 +9,7 @@ This document provides comprehensive examples of using OakIdeas.GenericRepositor
 - [Filtering and Querying](#filtering-and-querying)
 - [Ordering Results](#ordering-results)
 - [Eager Loading (Entity Framework Core)](#eager-loading-entity-framework-core)
+- [Cancellation Token Support](#cancellation-token-support)
 - [Complex Scenarios](#complex-scenarios)
 - [Error Handling](#error-handling)
 
@@ -362,6 +363,231 @@ var recentOrders = await orderRepository.Get(
     orderBy: q => q.OrderByDescending(o => o.OrderDate),
     includeProperties: "Customer,Items"
 );
+```
+
+## Cancellation Token Support
+
+All async methods support cancellation tokens to allow cancellation of long-running operations. This is essential for responsive applications and proper resource management.
+
+### Basic Cancellation Token Usage
+
+```csharp
+using System.Threading;
+
+var repository = new MemoryGenericRepository<Customer>();
+var cts = new CancellationTokenSource();
+
+// Pass cancellation token to any async method
+var customer = await repository.Get(1, cts.Token);
+var customers = await repository.Get(
+    filter: c => c.IsActive,
+    cancellationToken: cts.Token
+);
+var inserted = await repository.Insert(new Customer { Name = "John" }, cts.Token);
+var updated = await repository.Update(customer, cts.Token);
+var deleted = await repository.Delete(1, cts.Token);
+```
+
+### Timeout Scenario
+
+```csharp
+// Set a 5-second timeout for the operation
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+try
+{
+    var customers = await repository.Get(
+        filter: c => c.Orders.Any(o => o.Total > 1000),
+        orderBy: q => q.OrderBy(c => c.Name),
+        cancellationToken: cts.Token
+    );
+    
+    Console.WriteLine($"Found {customers.Count()} high-value customers");
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Query took too long and was cancelled");
+}
+```
+
+### User-Initiated Cancellation
+
+```csharp
+// In a console application or desktop app
+var cts = new CancellationTokenSource();
+
+// Start long-running operation
+var task = Task.Run(async () =>
+{
+    var customers = await repository.Get(cancellationToken: cts.Token);
+    foreach (var customer in customers)
+    {
+        // Process customer
+        await ProcessCustomerAsync(customer, cts.Token);
+    }
+});
+
+// User presses Ctrl+C or clicks Cancel button
+Console.WriteLine("Press any key to cancel...");
+Console.ReadKey();
+cts.Cancel();
+
+try
+{
+    await task;
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("Operation cancelled by user");
+}
+```
+
+### ASP.NET Core Integration
+
+ASP.NET Core provides automatic cancellation tokens when clients disconnect:
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class CustomersController : ControllerBase
+{
+    private readonly IGenericRepository<Customer> _repository;
+
+    public CustomersController(IGenericRepository<Customer> repository)
+    {
+        _repository = repository;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers(
+        [FromQuery] bool? isActive,
+        CancellationToken cancellationToken) // Automatically provided by ASP.NET Core
+    {
+        var customers = await _repository.Get(
+            filter: isActive.HasValue ? c => c.IsActive == isActive.Value : null,
+            orderBy: q => q.OrderBy(c => c.Name),
+            cancellationToken: cancellationToken // Cancels if client disconnects
+        );
+        
+        return Ok(customers);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Customer>> GetCustomer(
+        int id, 
+        CancellationToken cancellationToken)
+    {
+        var customer = await _repository.Get(id, cancellationToken);
+        
+        if (customer == null)
+            return NotFound();
+        
+        return Ok(customer);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Customer>> CreateCustomer(
+        [FromBody] Customer customer,
+        CancellationToken cancellationToken)
+    {
+        var created = await _repository.Insert(customer, cancellationToken);
+        return CreatedAtAction(nameof(GetCustomer), new { id = created.ID }, created);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult<Customer>> UpdateCustomer(
+        int id,
+        [FromBody] Customer customer,
+        CancellationToken cancellationToken)
+    {
+        var existing = await _repository.Get(id, cancellationToken);
+        if (existing == null)
+            return NotFound();
+        
+        customer.ID = id;
+        var updated = await _repository.Update(customer, cancellationToken);
+        return Ok(updated);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteCustomer(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        var deleted = await _repository.Delete(id, cancellationToken);
+        
+        if (!deleted)
+            return NotFound();
+        
+        return NoContent();
+    }
+}
+```
+
+### Chaining Operations with Same Token
+
+```csharp
+var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+
+try
+{
+    // Multiple operations sharing the same cancellation token
+    var customer = await repository.Get(1, cts.Token);
+    
+    customer.LastModified = DateTime.UtcNow;
+    var updated = await repository.Update(customer, cts.Token);
+    
+    var allCustomers = await repository.Get(
+        filter: c => c.IsActive,
+        cancellationToken: cts.Token
+    );
+    
+    Console.WriteLine($"Updated customer and retrieved {allCustomers.Count()} active customers");
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("One or more operations were cancelled");
+}
+finally
+{
+    cts.Dispose();
+}
+```
+
+### Conditional Cancellation
+
+```csharp
+var cts = new CancellationTokenSource();
+
+// Cancel after processing 1000 items
+int processedCount = 0;
+var customers = await repository.Get(cancellationToken: cts.Token);
+
+foreach (var customer in customers)
+{
+    if (processedCount >= 1000)
+    {
+        cts.Cancel();
+        break;
+    }
+    
+    // Process customer
+    await ProcessCustomerAsync(customer);
+    processedCount++;
+}
+```
+
+### Backward Compatibility
+
+All existing code continues to work without modification:
+
+```csharp
+// No cancellation token - works exactly as before
+var customer = await repository.Get(1);
+var customers = await repository.Get(filter: c => c.IsActive);
+await repository.Insert(new Customer { Name = "John" });
+await repository.Update(customer);
+await repository.Delete(1);
 ```
 
 ## Complex Scenarios
