@@ -94,6 +94,25 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     }
 
     /// <summary>
+    /// Gets entities with optional filtering, ordering, and type-safe eager loading of navigation properties.
+    /// Note: Include expressions are not used in memory repository implementation as relationships are loaded in-memory.
+    /// </summary>
+    /// <param name="filter">Optional LINQ filter expression</param>
+    /// <param name="orderBy">Optional ordering function</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <param name="includeExpressions">Not used in memory repository implementation</param>
+    /// <returns>Collection of entities matching the criteria</returns>
+    public Task<IEnumerable<TEntity>> Get(
+        Expression<Func<TEntity, bool>>? filter = null,
+        Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+        CancellationToken cancellationToken = default,
+        params Expression<Func<TEntity, object>>[] includeExpressions)
+    {
+        // In memory repository doesn't use includes, so delegate to the main Get method
+        return Get(filter, orderBy, string.Empty, cancellationToken);
+    }
+
+    /// <summary>
     /// Gets an entity by its primary key.
     /// </summary>
     /// <param name="id">The primary key value</param>

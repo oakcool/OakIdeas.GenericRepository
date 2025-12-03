@@ -65,6 +65,47 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey>(TDataCon
     }
 
     /// <summary>
+    /// Generic Get method with LINQ filter support, ordering, and type-safe eager loading of navigation properties.
+    /// </summary>
+    /// <param name="filter">Optional LINQ filter expression</param>
+    /// <param name="orderBy">Optional ordering function</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <param name="includeExpressions">Type-safe expressions for navigation properties to include</param>
+    /// <returns>Collection of entities matching the criteria</returns>
+    public virtual async Task<IEnumerable<TEntity>> Get(
+        Expression<Func<TEntity, bool>>? filter = null,
+        Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+        CancellationToken cancellationToken = default,
+        params Expression<Func<TEntity, object>>[] includeExpressions)
+    {
+        // Get the dbSet from the Entity passed in                
+        IQueryable<TEntity> query = dbSet;
+
+        // Apply the filter
+        if (filter is not null)
+        {
+            query = query.Where(filter);
+        }
+
+        // Include the specified properties using type-safe expressions
+        if (includeExpressions is not null)
+        {
+            foreach (var includeExpression in includeExpressions)
+            {
+                query = query.Include(includeExpression);
+            }
+        }
+
+        // Sort and return
+        if (orderBy is not null)
+        {
+            return await orderBy(query).ToListAsync(cancellationToken);
+        }
+        
+        return await query.ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// Gets an entity by its primary key.
     /// </summary>
     /// <param name="id">The primary key value</param>
