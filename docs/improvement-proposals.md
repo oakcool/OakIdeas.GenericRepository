@@ -558,33 +558,47 @@ var orders = await repository.Get(
 - **Refactoring**: Rename refactoring works correctly
 - **Modern pattern**: Aligns with EF Core conventions
 
+### Status
+✅ **IMPLEMENTED** (Version 0.0.9-alpha)
+
 ### Acceptance Criteria
 
 #### Documentation
-- [ ] Document both include methods
-- [ ] Show migration path from string-based
-- [ ] Document nested include syntax
-- [ ] Provide comparison examples
+- [x] Document both include methods
+- [x] Show migration path from string-based
+- [x] Document nested include syntax
+- [x] Provide comparison examples
 
 #### Testing
-- [ ] Test single includes
-- [ ] Test multiple includes
-- [ ] Test nested includes
-- [ ] Test backward compatibility with strings
+- [x] Test single includes
+- [x] Test multiple includes
+- [x] Test nested includes (with Select)
+- [x] Test backward compatibility with strings
 
 #### Implementation
-- [ ] Add overload with expression parameters
-- [ ] Implement in EntityFrameworkCoreRepository
-- [ ] Handle nested includes properly
-- [ ] Keep string-based method for compatibility
-- [ ] Document that MemoryRepository ignores includes
+- [x] Add overload with expression parameters
+- [x] Implement in EntityFrameworkCoreRepository
+- [x] Handle nested includes properly (via Select)
+- [x] Keep string-based method for compatibility
+- [x] Document that MemoryRepository ignores includes
 
 ### Breaking Change Assessment
 - **Breaking**: No
 - **Additive**: New overload, existing method remains
+- **Implementation**: All type-safe includes work seamlessly with existing repository methods
+- **Validation**: All 136 existing tests pass unchanged, 15 new tests added for type-safe includes
+
+### Implementation Notes
+- Added comprehensive type-safe includes documentation with real-world examples
+- Implemented using EF Core's Include() method with expressions for proper database query translation
+- 15 unit and integration tests ensuring correctness for both implementations
+- Type-safe includes work with both MemoryGenericRepository and EntityFrameworkCoreRepository
+- Supports single and multiple navigation properties
+- Nested includes supported via LINQ Select expressions
+- Full backward compatibility with string-based includes maintained
 
 ### Estimated Effort
-Small (1-2 days)
+Small (1-2 days) - **COMPLETED**
 
 ---
 
@@ -937,13 +951,11 @@ Large (3-4 days)
 5. ✅ Specification Pattern Support (Proposal 2)
 6. ✅ Cancellation Token Support (Proposal 4)
 7. ✅ Batch Operations (Proposal 5)
-8. 🟢 Pagination Support (Proposal 3)
-9. 🟢 Soft Delete Support (Proposal 9)
+8. ✅ Type-Safe Include Properties (Proposal 6)
+9. 🟢 Pagination Support (Proposal 3)
+10. 🟢 Soft Delete Support (Proposal 9)
 
-### Phase 2: High Value, Medium Complexity (2-3 weeks)
-1. 🟡 Type-Safe Includes (Proposal 6)
-
-### Phase 3: Advanced Features (4-6 weeks)
+### Phase 2: Advanced Features (4-6 weeks)
 1. 🔴 Async Enumerable (Proposal 7)
 2. 🔴 Query Object Pattern (Proposal 8)
 3. 🔴 Event/Notification Support (Proposal 10)

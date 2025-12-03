@@ -8,6 +8,7 @@ Welcome to the OakIdeas.GenericRepository documentation. This library provides a
 - [Getting Started](./getting-started.md)
 - [Usage Examples](./usage-examples.md)
 - [Specification Pattern](./specification-pattern.md)
+- [Type-Safe Include Properties](./type-safe-includes.md)
 - [API Reference](./api-reference.md)
 - [Best Practices](./best-practices.md)
 - [Contributing Guidelines](./contributing.md)
@@ -35,7 +36,11 @@ Both implementations share the same `IGenericRepository<TEntity>` interface, mak
 - Async/await support throughout
 - Thread-safe in-memory implementation
 - Entity Framework Core integration with eager loading support
+- **Type-Safe Include Properties for compile-time safety**
 - **Specification Pattern for reusable query logic**
+- **Batch Operations for efficient bulk operations**
+- **Generic Key Type Support (int, Guid, long, string, etc.)**
+- **Cancellation Token Support for all async operations**
 - Comprehensive XML documentation
 - Full test coverage
 
