@@ -1,5 +1,8 @@
 # GenericRepository
-![OakIdeas.GenericRepository - Deploy](https://github.com/oakcool/OakIdeas.GenericRepository/workflows/OakIdeas.GenericRepository%20-%20Deploy/badge.svg)
+
+![Build & Test](https://github.com/oakcool/OakIdeas.GenericRepository/workflows/Build%20%26%20Test/badge.svg)
+![Deploy to NuGet](https://github.com/oakcool/OakIdeas.GenericRepository/workflows/Deploy%20to%20NuGet/badge.svg)
+![CodeQL](https://github.com/oakcool/OakIdeas.GenericRepository/workflows/CodeQL%20Security%20Analysis/badge.svg)
 
 A versatile and extensible implementation of the repository pattern for CRUD operations with support for middleware pipelines, multiple storage backends, and advanced querying.
 

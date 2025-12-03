@@ -1,6 +1,6 @@
 name: Build & Test
 
-on: 
+on:
   pull_request:
     branches:
       - master
@@ -24,7 +24,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
         dotnet-version: [ '10.0.x' ]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

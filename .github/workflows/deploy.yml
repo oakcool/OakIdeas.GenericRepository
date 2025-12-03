@@ -18,7 +18,7 @@ jobs:
     environment:
       name: production
       url: https://www.nuget.org/packages/OakIdeas.GenericRepository
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
