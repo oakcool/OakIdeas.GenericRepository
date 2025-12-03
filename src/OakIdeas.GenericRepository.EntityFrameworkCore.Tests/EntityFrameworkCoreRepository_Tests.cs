@@ -189,13 +189,16 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<InMemoryDataContext>()
 				.UseInMemoryDatabase(uniqueDbName)
 				.Options;
-			var context = new InMemoryDataContext(options);
-			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			await repository.Insert(new Customer() { Name = _entityDefaultName });
-			await repository.Insert(new Customer() { Name = _entityNewName });
-			await repository.Insert(new Customer() { Name = "Third Customer" });
-			var result = await repository.Get();
-			Assert.AreEqual(3, result.Count());
+			
+			using (var context = new InMemoryDataContext(options))
+			{
+				var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
+				await repository.Insert(new Customer() { Name = _entityDefaultName });
+				await repository.Insert(new Customer() { Name = _entityNewName });
+				await repository.Insert(new Customer() { Name = "Third Customer" });
+				var result = await repository.Get();
+				Assert.AreEqual(3, result.Count());
+			}
 		}
 	}
 }

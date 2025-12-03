@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OakIdeas.GenericRepository
@@ -17,6 +18,7 @@ namespace OakIdeas.GenericRepository
         where TEntity : EntityBase
     {
         readonly ConcurrentDictionary<int, TEntity> _data;
+        private int _nextId = 1;
 
         public MemoryGenericRepository()
         {
@@ -157,15 +159,12 @@ namespace OakIdeas.GenericRepository
 
         /// <summary>
         /// Generates the next available ID for a new entity.
+        /// Uses atomic increment for O(1) performance and thread safety.
         /// </summary>
         /// <returns>The next available ID</returns>
         protected Task<int> GetNextID()
         {
-            int next = 1;
-            if (_data.Count > 0)
-            {
-                next = _data.Keys.Max(k => k) + 1;
-            }
+            int next = Interlocked.Increment(ref _nextId);
             return Task.FromResult(next);
         }
     }
