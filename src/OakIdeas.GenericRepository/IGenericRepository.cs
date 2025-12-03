@@ -45,6 +45,20 @@ public interface IGenericRepository<TEntity, TKey> where TEntity : class
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets entities with optional filtering, ordering, and type-safe eager loading of navigation properties.
+    /// </summary>
+    /// <param name="filter">Optional LINQ filter expression</param>
+    /// <param name="orderBy">Optional ordering function</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+    /// <param name="includeExpressions">Type-safe expressions for navigation properties to include</param>
+    /// <returns>Collection of entities matching the criteria</returns>
+    Task<IEnumerable<TEntity>> Get(
+        Expression<Func<TEntity, bool>>? filter = null,
+        Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+        CancellationToken cancellationToken = default,
+        params Expression<Func<TEntity, object>>[] includeExpressions);
+
+    /// <summary>
     /// Gets an entity by its primary key.
     /// </summary>
     /// <param name="id">The primary key value</param>

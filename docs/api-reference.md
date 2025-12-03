@@ -210,6 +210,75 @@ var customers = await repository.Get(
 
 ---
 
+##### Get (with type-safe includes)
+
+```csharp
+Task<IEnumerable<TEntity>> Get(
+    Expression<Func<TEntity, bool>>? filter = null,
+    Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+    CancellationToken cancellationToken = default,
+    params Expression<Func<TEntity, object>>[] includeExpressions)
+```
+
+Gets entities with optional filtering, ordering, and type-safe eager loading of navigation properties.
+
+**Parameters:**
+- `filter` (Expression<Func<TEntity, bool>>, optional): LINQ filter expression to apply.
+- `orderBy` (Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>, optional): Function to order results.
+- `cancellationToken` (CancellationToken, optional): Cancellation token to cancel the operation.
+- `includeExpressions` (params Expression<Func<TEntity, object>>[]): Type-safe expressions for navigation properties to include (EF Core only).
+
+**Returns:** Task<IEnumerable<TEntity>> - Collection of entities matching the criteria with included navigation properties.
+
+**Exceptions:**
+- `OperationCanceledException`: Thrown when the operation is cancelled via the cancellation token.
+
+**Benefits:**
+- **Type safety**: Compile-time checking of navigation property names
+- **IntelliSense**: Full autocomplete support when writing includes
+- **Refactoring**: Rename operations automatically update includes
+- **No typos**: Impossible to mistype navigation property names
+
+**Example:**
+```csharp
+// Single navigation property
+var customers = await repository.Get(
+    filter: c => c.IsActive,
+    includeExpressions: c => c.Orders
+);
+
+// Multiple navigation properties
+var orders = await repository.Get(
+    filter: o => o.OrderDate >= DateTime.UtcNow.AddDays(-30),
+    orderBy: q => q.OrderByDescending(o => o.OrderDate),
+    includeExpressions:
+        o => o.Customer,
+        o => o.Items
+);
+
+// Nested includes using Select
+var orders = await repository.Get(
+    includeExpressions:
+        o => o.Items.Select(i => i.Product)
+);
+
+// With cancellation token
+var cts = new CancellationTokenSource();
+var customers = await repository.Get(
+    filter: c => c.IsActive,
+    cancellationToken: cts.Token,
+    includeExpressions:
+        c => c.Orders,
+        c => c.Address
+);
+```
+
+**Note:** For MemoryGenericRepository, include expressions are accepted for API consistency but ignored since in-memory relationships work differently.
+
+**See Also:** [Type-Safe Include Properties Guide](./type-safe-includes.md) for comprehensive examples and migration guide.
+
+---
+
 ##### Update
 
 ```csharp
