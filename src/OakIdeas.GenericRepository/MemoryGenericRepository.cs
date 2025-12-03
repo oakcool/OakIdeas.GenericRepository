@@ -28,10 +28,12 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     /// Deletes an entity from the repository.
     /// </summary>
     /// <param name="entityToDelete">The entity to delete</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>True if deletion was successful, false otherwise</returns>
     /// <exception cref="ArgumentNullException">Thrown when entityToDelete is null</exception>
-    public Task<bool> Delete(TEntity entityToDelete)
+    public Task<bool> Delete(TEntity entityToDelete, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ThrowIfNull(entityToDelete);
 
         if (_data.TryGetValue(entityToDelete.ID, out _))
@@ -46,10 +48,12 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     /// Deletes an entity by its primary key.
     /// </summary>
     /// <param name="id">The primary key value</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>True if deletion was successful, false otherwise</returns>
     /// <exception cref="ArgumentNullException">Thrown when id is null</exception>
-    public Task<bool> Delete(TKey id)
+    public Task<bool> Delete(TKey id, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ThrowIfNull(id);
 
         if (_data.TryGetValue(id, out _))
@@ -66,12 +70,15 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     /// <param name="filter">Optional LINQ filter expression</param>
     /// <param name="orderBy">Optional ordering function</param>
     /// <param name="includeProperties">Not used in memory repository implementation</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>Collection of entities matching the criteria</returns>
     public Task<IEnumerable<TEntity>> Get(
         Expression<Func<TEntity, bool>>? filter = null, 
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, 
-        string includeProperties = "")
+        string includeProperties = "",
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         IQueryable<TEntity> query = _data.Values.AsQueryable();
 
         // Apply the filter
@@ -90,10 +97,12 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     /// Gets an entity by its primary key.
     /// </summary>
     /// <param name="id">The primary key value</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>The entity if found, null otherwise</returns>
     /// <exception cref="ArgumentNullException">Thrown when id is null</exception>
-    public Task<TEntity?> Get(TKey id)
+    public Task<TEntity?> Get(TKey id, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ThrowIfNull(id);
 
         return Task.FromResult(
@@ -107,10 +116,12 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     /// Inserts a new entity into the repository. If the entity ID is the default value for its type, a new ID is generated (for integer keys only).
     /// </summary>
     /// <param name="entity">The entity to insert</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>The inserted entity, or the existing entity if one with the same ID already exists</returns>
     /// <exception cref="ArgumentNullException">Thrown when entity is null</exception>
-    public async Task<TEntity> Insert(TEntity entity)
+    public async Task<TEntity> Insert(TEntity entity, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ThrowIfNull(entity);
 
         if (_isIntKey && EqualityComparer<TKey>.Default.Equals(entity.ID, default!))
@@ -131,10 +142,12 @@ public class MemoryGenericRepository<TEntity, TKey> : IGenericRepository<TEntity
     /// Updates an existing entity in the repository.
     /// </summary>
     /// <param name="entityToUpdate">The entity to update</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
     /// <returns>The updated entity</returns>
     /// <exception cref="ArgumentNullException">Thrown when entityToUpdate is null</exception>
-    public Task<TEntity> Update(TEntity entityToUpdate)
+    public Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ThrowIfNull(entityToUpdate);
 
         if (_data.TryGetValue(entityToUpdate.ID, out _))
