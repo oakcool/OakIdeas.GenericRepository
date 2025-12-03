@@ -1,0 +1,46 @@
+# Configure automatic labeling for pull requests based on changed files
+# See https://github.com/actions/labeler for more information
+
+# Source code changes
+'area: core':
+  - changed-files:
+    - any-glob-to-any-file: 'src/OakIdeas.GenericRepository/**'
+
+'area: memory':
+  - changed-files:
+    - any-glob-to-any-file: 'src/OakIdeas.GenericRepository.Memory/**'
+
+'area: ef-core':
+  - changed-files:
+    - any-glob-to-any-file: 'src/OakIdeas.GenericRepository.EntityFrameworkCore/**'
+
+'area: middleware':
+  - changed-files:
+    - any-glob-to-any-file: 'src/OakIdeas.GenericRepository.Middleware/**'
+
+# Test changes
+'tests':
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*.Tests/**'
+
+# Documentation changes
+'documentation':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '*.md'
+      - 'docs/**'
+      - 'Images/**'
+
+# CI/CD changes
+'ci/cd':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**'
+      - '.github/dependabot.yml'
+
+# Dependencies
+'dependencies':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.csproj'
+      - '**/packages.lock.json'

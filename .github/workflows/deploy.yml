@@ -1,39 +1,58 @@
-name: OakIdeas.GenericRepository - Deploy
+name: Deploy to NuGet
 
 on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://www.nuget.org/packages/OakIdeas.GenericRepository
+
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Get all history for proper versioning
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '10.0.x'
 
+    - name: Restore dependencies
+      run: dotnet restore
+      working-directory: ./src
+
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration Release --no-restore
       working-directory: ./src
 
     - name: Run unit tests
-      run: dotnet test --configuration Release
+      run: dotnet test --configuration Release --no-build --verbosity normal
       working-directory: ./src
 
-    - name: Generate nuget package
-      run: dotnet pack --configuration Release -o nupkg
+    - name: Generate nuget packages
+      run: dotnet pack --configuration Release --no-build -o nupkg
       working-directory: ./src
 
-    - name: Publish nuget package
+    - name: Publish nuget packages
       run: |
-        for pkg in *.nupkg
-          do
-            dotnet nuget push $pkg -k $nuget_api_key -s "https://api.nuget.org/v3/index.json" --skip-duplicate
-          done  
-      env:
-        nuget_api_key: ${{ secrets.NUGET_API_KEY }}
+        for pkg in *.nupkg; do
+          echo "Publishing $pkg"
+          dotnet nuget push "$pkg" \
+            --api-key "${{ secrets.NUGET_API_KEY }}" \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate
+        done
       working-directory: ./src/nupkg

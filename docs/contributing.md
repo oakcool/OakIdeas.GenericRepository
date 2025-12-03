@@ -30,7 +30,7 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
 
 ### Prerequisites
 
-- .NET SDK 8.0 or higher
+- .NET SDK 10.0 or higher
 - Git
 - A code editor (Visual Studio, VS Code, or Rider recommended)
 - Basic knowledge of C# and Entity Framework Core

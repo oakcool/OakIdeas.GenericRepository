@@ -15,6 +15,7 @@ Welcome to the OakIdeas.GenericRepository documentation. This library provides a
 - [API Reference](./api-reference.md)
 - [Best Practices](./best-practices.md)
 - [Contributing Guidelines](./contributing.md)
+- [GitHub Workflows & CI/CD](./workflows.md)
 - [Future Improvements](./improvement-proposals.md)
 
 ## Quick Links
