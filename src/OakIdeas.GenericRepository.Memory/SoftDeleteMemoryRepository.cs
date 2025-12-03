@@ -2,66 +2,66 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using OakIdeas.GenericRepository.Models;
 
-namespace OakIdeas.GenericRepository.EntityFrameworkCore;
+namespace OakIdeas.GenericRepository.Memory;
 
 /// <summary>
-/// Entity Framework Core repository implementation with soft delete support.
+/// In-memory repository implementation with soft delete support.
 /// Automatically filters out soft-deleted entities in all queries.
 /// </summary>
 /// <typeparam name="TEntity">The entity type that implements ISoftDeletable</typeparam>
-/// <typeparam name="TContext">The DbContext type</typeparam>
 /// <typeparam name="TKey">The type of the primary key</typeparam>
-public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : EntityFrameworkCoreRepository<TEntity, TContext, TKey>
-    where TEntity : class, ISoftDeletable
-    where TContext : DbContext
+public class SoftDeleteMemoryRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey>
+    where TEntity : EntityBase<TKey>, ISoftDeletable
     where TKey : notnull
 {
+    private readonly MemoryGenericRepository<TEntity, TKey> _innerRepository;
+
     /// <summary>
-    /// Initializes a new instance of the SoftDeleteEntityFrameworkCoreRepository class.
+    /// Initializes a new instance of the SoftDeleteMemoryRepository class.
     /// </summary>
-    /// <param name="context">The DbContext instance</param>
-    public SoftDeleteEntityFrameworkCoreRepository(TContext context) : base(context)
+    public SoftDeleteMemoryRepository()
     {
+        _innerRepository = new MemoryGenericRepository<TEntity, TKey>();
     }
 
     /// <summary>
     /// Gets entities with optional filtering, ordering, and eager loading.
     /// Automatically excludes soft-deleted entities.
     /// </summary>
-    public override async Task<IEnumerable<TEntity>> Get(
+    public async Task<IEnumerable<TEntity>> Get(
         Expression<Func<TEntity, bool>>? filter = null,
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
         string includeProperties = "",
         CancellationToken cancellationToken = default)
     {
         var combinedFilter = CombineFilters(filter, e => !e.IsDeleted);
-        return await base.Get(combinedFilter, orderBy, includeProperties, cancellationToken);
+        return await _innerRepository.Get(combinedFilter, orderBy, includeProperties, cancellationToken);
     }
 
     /// <summary>
     /// Gets entities with optional filtering, ordering, and type-safe eager loading of navigation properties.
     /// Automatically excludes soft-deleted entities.
     /// </summary>
-    public override async Task<IEnumerable<TEntity>> Get(
+    public async Task<IEnumerable<TEntity>> Get(
         Expression<Func<TEntity, bool>>? filter = null,
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
         CancellationToken cancellationToken = default,
         params Expression<Func<TEntity, object>>[] includeExpressions)
     {
         var combinedFilter = CombineFilters(filter, e => !e.IsDeleted);
-        return await base.Get(combinedFilter, orderBy, cancellationToken, includeExpressions);
+        return await _innerRepository.Get(combinedFilter, orderBy, cancellationToken, includeExpressions);
     }
 
     /// <summary>
     /// Gets entities using a query object.
     /// Automatically excludes soft-deleted entities.
     /// </summary>
-    public override async Task<IEnumerable<TEntity>> Get(Query<TEntity> query, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<TEntity>> Get(Query<TEntity> query, CancellationToken cancellationToken = default)
     {
         if (query == null)
             throw new ArgumentNullException(nameof(query));
@@ -71,7 +71,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
 
         try
         {
-            return await base.Get(query, cancellationToken);
+            return await _innerRepository.Get(query, cancellationToken);
         }
         finally
         {
@@ -83,9 +83,9 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
     /// Gets an entity by its primary key.
     /// Returns null if the entity is soft-deleted.
     /// </summary>
-    public override async Task<TEntity?> Get(TKey id, CancellationToken cancellationToken = default)
+    public async Task<TEntity?> Get(TKey id, CancellationToken cancellationToken = default)
     {
-        var entity = await base.Get(id, cancellationToken);
+        var entity = await _innerRepository.Get(id, cancellationToken);
         
         if (entity != null && entity.IsDeleted)
             return null;
@@ -97,20 +97,52 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
     /// Streams entities with optional filtering and ordering using IAsyncEnumerable.
     /// Automatically excludes soft-deleted entities.
     /// </summary>
-    public override IAsyncEnumerable<TEntity> GetAsyncEnumerable(
+    public IAsyncEnumerable<TEntity> GetAsyncEnumerable(
         Expression<Func<TEntity, bool>>? filter = null,
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
         string includeProperties = "",
         CancellationToken cancellationToken = default)
     {
         var combinedFilter = CombineFilters(filter, e => !e.IsDeleted);
-        return base.GetAsyncEnumerable(combinedFilter, orderBy, includeProperties, cancellationToken);
+        return _innerRepository.GetAsyncEnumerable(combinedFilter, orderBy, includeProperties, cancellationToken);
     }
 
     /// <summary>
-    /// Soft deletes an entity by marking it as deleted without removing it from the database.
+    /// Inserts a new entity.
     /// </summary>
-    public override async Task<bool> Delete(TEntity entityToDelete, CancellationToken cancellationToken = default)
+    public async Task<TEntity> Insert(TEntity entity, CancellationToken cancellationToken = default)
+    {
+        return await _innerRepository.Insert(entity, cancellationToken);
+    }
+
+    /// <summary>
+    /// Inserts multiple entities.
+    /// </summary>
+    public async Task<IEnumerable<TEntity>> InsertRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        return await _innerRepository.InsertRange(entities, cancellationToken);
+    }
+
+    /// <summary>
+    /// Updates an entity.
+    /// </summary>
+    public async Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken = default)
+    {
+        return await _innerRepository.Update(entityToUpdate, cancellationToken);
+    }
+
+    /// <summary>
+    /// Updates multiple entities.
+    /// </summary>
+    public async Task<IEnumerable<TEntity>> UpdateRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        return await _innerRepository.UpdateRange(entities, cancellationToken);
+    }
+
+    /// <summary>
+    /// Soft deletes an entity by marking it as deleted without removing it from the repository.
+    /// </summary>
+    public async Task<bool> Delete(TEntity entityToDelete, CancellationToken cancellationToken = default)
     {
         if (entityToDelete == null)
             throw new ArgumentNullException(nameof(entityToDelete));
@@ -120,19 +152,19 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
         if (!string.IsNullOrEmpty(_deletedBy))
         {
             entityToDelete.DeletedBy = _deletedBy;
-            _deletedBy = null; // Clear after use to avoid unintended reuse
+            _deletedBy = null; // Clear after use
         }
         
-        var updated = await Update(entityToDelete, cancellationToken);
+        var updated = await _innerRepository.Update(entityToDelete, cancellationToken);
         return updated != null;
     }
 
     /// <summary>
     /// Soft deletes an entity by its primary key.
     /// </summary>
-    public override async Task<bool> Delete(TKey id, CancellationToken cancellationToken = default)
+    public async Task<bool> Delete(TKey id, CancellationToken cancellationToken = default)
     {
-        var entity = await base.Get(id, cancellationToken);
+        var entity = await _innerRepository.Get(id, cancellationToken);
         if (entity == null)
             return false;
 
@@ -142,7 +174,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
     /// <summary>
     /// Soft deletes a range of entities.
     /// </summary>
-    public override async Task<int> DeleteRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+    public async Task<int> DeleteRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
     {
         if (entities == null)
             throw new ArgumentNullException(nameof(entities));
@@ -150,7 +182,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
         var entityList = entities.ToList();
         var now = DateTime.UtcNow;
         var deletedBy = _deletedBy;
-        _deletedBy = null; // Clear after capturing to avoid unintended reuse
+        _deletedBy = null; // Clear after capturing
 
         foreach (var entity in entityList)
         {
@@ -162,23 +194,21 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
             }
         }
 
-        await UpdateRange(entityList, cancellationToken);
+        // Use UpdateRange for efficiency
+        await _innerRepository.UpdateRange(entityList, cancellationToken);
         return entityList.Count;
     }
 
     /// <summary>
     /// Soft deletes entities matching the specified filter.
     /// </summary>
-    public override async Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default)
+    public async Task<int> DeleteRange(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default)
     {
         if (filter == null)
             throw new ArgumentNullException(nameof(filter));
 
-        var entities = await base.Get(filter, null, "", cancellationToken);
+        var entities = await _innerRepository.Get(filter, null, "", cancellationToken);
         var entityList = entities.Where(e => !e.IsDeleted).ToList();
-
-        if (entityList.Count == 0)
-            return 0;
 
         return await DeleteRange(entityList, cancellationToken);
     }
@@ -192,7 +222,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
         string includeProperties = "",
         CancellationToken cancellationToken = default)
     {
-        return await base.Get(filter, orderBy, includeProperties, cancellationToken);
+        return await _innerRepository.Get(filter, orderBy, includeProperties, cancellationToken);
     }
 
     /// <summary>
@@ -204,18 +234,18 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
         CancellationToken cancellationToken = default,
         params Expression<Func<TEntity, object>>[] includeExpressions)
     {
-        return await base.Get(filter, orderBy, cancellationToken, includeExpressions);
+        return await _innerRepository.Get(filter, orderBy, cancellationToken, includeExpressions);
     }
 
     /// <summary>
-    /// Permanently deletes a soft-deleted entity from the database.
+    /// Permanently deletes a soft-deleted entity from the repository.
     /// </summary>
     public async Task<bool> PermanentlyDelete(TEntity entityToDelete, CancellationToken cancellationToken = default)
     {
         if (entityToDelete == null)
             throw new ArgumentNullException(nameof(entityToDelete));
 
-        return await base.Delete(entityToDelete, cancellationToken);
+        return await _innerRepository.Delete(entityToDelete, cancellationToken);
     }
 
     /// <summary>
@@ -223,11 +253,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
     /// </summary>
     public async Task<bool> PermanentlyDelete(TKey id, CancellationToken cancellationToken = default)
     {
-        var entity = await base.Get(id, cancellationToken);
-        if (entity == null)
-            return false;
-
-        return await PermanentlyDelete(entity, cancellationToken);
+        return await _innerRepository.Delete(id, cancellationToken);
     }
 
     /// <summary>
@@ -245,7 +271,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
         entityToRestore.DeletedAt = null;
         entityToRestore.DeletedBy = null;
 
-        return await Update(entityToRestore, cancellationToken);
+        return await _innerRepository.Update(entityToRestore, cancellationToken);
     }
 
     /// <summary>
@@ -253,7 +279,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
     /// </summary>
     public async Task<TEntity?> Restore(TKey id, CancellationToken cancellationToken = default)
     {
-        var entity = await base.Get(id, cancellationToken);
+        var entity = await _innerRepository.Get(id, cancellationToken);
         if (entity == null)
             return null;
 
@@ -261,7 +287,7 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
     }
 
     /// <summary>
-    /// Sets the DeletedBy field for soft delete operations.
+    /// Sets the DeletedBy field for a soft delete operation.
     /// Call this before Delete() to track who deleted the entity.
     /// </summary>
     public void SetDeletedBy(string deletedBy)
@@ -270,23 +296,32 @@ public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, TKey> : 
     }
 
     private string? _deletedBy;
+
+    /// <summary>
+    /// Combines two filter expressions using AND logic.
+    /// </summary>
+    private Expression<Func<TEntity, bool>>? CombineFilters(
+        Expression<Func<TEntity, bool>>? first,
+        Expression<Func<TEntity, bool>> second)
+    {
+        if (first == null)
+            return second;
+
+        var parameter = Expression.Parameter(typeof(TEntity), "e");
+        var combined = Expression.AndAlso(
+            Expression.Invoke(first, parameter),
+            Expression.Invoke(second, parameter)
+        );
+        return Expression.Lambda<Func<TEntity, bool>>(combined, parameter);
+    }
 }
 
 /// <summary>
-/// Entity Framework Core repository implementation with soft delete support for entities with integer primary keys.
+/// In-memory repository implementation with soft delete support for entities with integer primary keys.
 /// Provided for backward compatibility with existing code.
 /// </summary>
 /// <typeparam name="TEntity">The entity type that implements ISoftDeletable</typeparam>
-/// <typeparam name="TContext">The DbContext type</typeparam>
-public class SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext> : SoftDeleteEntityFrameworkCoreRepository<TEntity, TContext, int>
-    where TEntity : class, ISoftDeletable
-    where TContext : DbContext
+public class SoftDeleteMemoryRepository<TEntity> : SoftDeleteMemoryRepository<TEntity, int>
+    where TEntity : EntityBase<int>, ISoftDeletable
 {
-    /// <summary>
-    /// Initializes a new instance of the SoftDeleteEntityFrameworkCoreRepository class.
-    /// </summary>
-    /// <param name="context">The DbContext instance</param>
-    public SoftDeleteEntityFrameworkCoreRepository(TContext context) : base(context)
-    {
-    }
 }

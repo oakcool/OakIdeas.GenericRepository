@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OakIdeas.GenericRepository.Memory;
 using OakIdeas.GenericRepository;
 using OakIdeas.GenericRepository.Models;
 using System;

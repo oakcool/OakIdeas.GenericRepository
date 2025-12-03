@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OakIdeas.GenericRepository;
+namespace OakIdeas.GenericRepository.Memory;
 
 /// <summary>
 /// In-memory implementation of the generic repository pattern using a concurrent dictionary.
