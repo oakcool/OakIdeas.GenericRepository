@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\OakIdeas.GenericRepository\OakIdeas.GenericRepository.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>13.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <Version>0.1.0-alpha</Version>
+    <Authors>Mateus Carvalho</Authors>
+    <Company>OakIdeas</Company>
+    <Description>Middleware infrastructure for OakIdeas.GenericRepository providing extensible cross-cutting concerns like logging, caching, validation, and audit trails.</Description>
+    <Copyright>OakIdeas</Copyright>
+    <PackageProjectUrl>https://github.com/oakcool/OakIdeas.GenericRepository</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository.git</RepositoryUrl>
+    <PackageTags>middleware, repository, pipeline, logging, audit</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageReleaseNotes>Initial release with core middleware infrastructure and standard middleware components</PackageReleaseNotes>
+  </PropertyGroup>
+
+</Project>
