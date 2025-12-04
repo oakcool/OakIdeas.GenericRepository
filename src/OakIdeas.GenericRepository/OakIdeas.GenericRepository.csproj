@@ -1,42 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>13.0</LangVersion>
-    <Nullable>enable</Nullable>
+    <TargetFramework>net10.0</TargetFramework>
     <Version>0.0.5.1-alpha</Version>
-    <Authors>OakIdeas</Authors>
-    <Company>OakIdeas</Company>
     <Description>A very simple and generic implementation of the repository pattern for CRUD operations.</Description>
-    <Copyright>OakIdeas</Copyright>
-    <PackageProjectUrl>https://github.com/oakcool/OakIdeas.GenericRepository</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository</RepositoryUrl>
     <PackageTags>repositorypattern, repository, data</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <RepositoryType>git</RepositoryType>
-    <NeutralLanguage>en-US</NeutralLanguage>
     <PackageReleaseNotes>- Generic interface
 - EntityBase
 - Memory Repository (Dictionary based)</PackageReleaseNotes>
-    <PackageIcon>GenericRepository.png</PackageIcon>
     <AssemblyVersion>0.0.5.1</AssemblyVersion>
     <Title>OakIdeas Generic Repository</Title>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\Images\GenericRepository.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <None Include="..\..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.0" />
   </ItemGroup>
 
 </Project>

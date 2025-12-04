@@ -1,0 +1,55 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Common Build Properties -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>9999</WarningLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Package Metadata -->
+    <Authors>OakIdeas</Authors>
+    <Company>OakIdeas</Company>
+    <Copyright>OakIdeas</Copyright>
+    <PackageProjectUrl>https://github.com/oakcool/OakIdeas.GenericRepository</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <!-- Note: PackageIcon commented out as the current icon file exceeds 1MB NuGet limit -->
+    <!-- <PackageIcon>GenericRepository.png</PackageIcon> -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Deterministic Build -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- Source Link -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- Enable ImplicitUsings for non-test projects -->
+  <PropertyGroup Condition="'$(IsTestProject)' != 'true'">
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Common Package Files for Packable Projects -->
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)..\LICENSE" Pack="true" PackagePath="" Visible="false" />
+    <!-- Note: Icon file commented out as it exceeds 1MB NuGet limit - please optimize the image -->
+    <!-- <None Include="$(MSBuildThisFileDirectory)..\Images\GenericRepository.png" Pack="true" PackagePath="" Visible="false" /> -->
+    <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="" Visible="false" Condition="Exists('$(MSBuildThisFileDirectory)..\README.md')" />
+  </ItemGroup>
+
+  <!-- Source Link Package Reference -->
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
