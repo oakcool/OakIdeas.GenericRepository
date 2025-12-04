@@ -5,18 +5,18 @@
     <LangVersion>13.0</LangVersion>
     <Nullable>enable</Nullable>
     <Version>0.0.1.0-alpha</Version>
-    <Authors>Mateus Carvalho</Authors>
+    <Authors>OakIdeas</Authors>
     <Company>OakIdeas</Company>
     <Description>Middleware infrastructure for OakIdeas.GenericRepository - enables extensible pipeline processing for repository operations.</Description>
     <Copyright>OakIdeas</Copyright>
     <PackageProjectUrl>https://github.com/oakcool/OakIdeas.GenericRepository</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository</RepositoryUrl>
     <PackageTags>repositorypattern, repository, middleware, pipeline</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <PackageIcon>oakideasnew.png</PackageIcon>
+    <PackageIcon>GenericRepository.png</PackageIcon>
     <AssemblyVersion>0.0.1.0</AssemblyVersion>
   </PropertyGroup>
 
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\Images\oakideasnew.png">
+    <None Include="..\..\Images\GenericRepository.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

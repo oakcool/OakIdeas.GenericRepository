@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30309.148
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OakIdeas.GenericRepository", "OakIdeas.GenericRepository\OakIdeas.GenericRepository.csproj", "{9D5CF27D-9D66-49B8-B49E-925A691C6134}"
 EndProject
@@ -21,6 +21,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakIdeas.GenericRepository.Memory", "OakIdeas.GenericRepository.Memory\OakIdeas.GenericRepository.Memory.csproj", "{38C66F05-48F3-4A60-9410-B3CCD76B0D00}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OakIdeas.GenericRepository.Middleware.Tests", "OakIdeas.GenericRepository.Middleware.Tests\OakIdeas.GenericRepository.Middleware.Tests.csproj", "{D95CF863-FE19-4314-9D37-EADE816BD63C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1. Packages", "1. Packages", "{643C1C41-AFE2-42EE-8F8E-0CD3B368CD5A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2. Testing", "2. Testing", "{544E3526-0648-4EA8-9F96-AE9286B0D101}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -119,6 +123,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9D5CF27D-9D66-49B8-B49E-925A691C6134} = {643C1C41-AFE2-42EE-8F8E-0CD3B368CD5A}
+		{473D1E8F-54C6-4979-BAD7-751CF6BDF7A9} = {544E3526-0648-4EA8-9F96-AE9286B0D101}
+		{6E55C6D0-A483-4043-AA0B-F46F3C568455} = {643C1C41-AFE2-42EE-8F8E-0CD3B368CD5A}
+		{7A082DB6-13A9-4812-9F03-CD70D846B260} = {544E3526-0648-4EA8-9F96-AE9286B0D101}
+		{4BDF9DF7-1935-4B9E-AA0D-C27506E1E6A4} = {643C1C41-AFE2-42EE-8F8E-0CD3B368CD5A}
+		{38C66F05-48F3-4A60-9410-B3CCD76B0D00} = {643C1C41-AFE2-42EE-8F8E-0CD3B368CD5A}
+		{D95CF863-FE19-4314-9D37-EADE816BD63C} = {544E3526-0648-4EA8-9F96-AE9286B0D101}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7B641A4-009A-44BA-918F-0B084DBD00D7}

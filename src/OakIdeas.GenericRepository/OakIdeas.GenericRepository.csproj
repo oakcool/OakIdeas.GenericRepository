@@ -5,12 +5,12 @@
     <LangVersion>13.0</LangVersion>
     <Nullable>enable</Nullable>
     <Version>0.0.5.1-alpha</Version>
-    <Authors>Mateus Carvalho</Authors>
+    <Authors>OakIdeas</Authors>
     <Company>OakIdeas</Company>
     <Description>A very simple and generic implementation of the repository pattern for CRUD operations.</Description>
     <Copyright>OakIdeas</Copyright>
     <PackageProjectUrl>https://github.com/oakcool/OakIdeas.GenericRepository</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository</RepositoryUrl>
     <PackageTags>repositorypattern, repository, data</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -19,8 +19,9 @@
     <PackageReleaseNotes>- Generic interface
 - EntityBase
 - Memory Repository (Dictionary based)</PackageReleaseNotes>
-    <PackageIcon>oakideasnew.png</PackageIcon>
+    <PackageIcon>GenericRepository.png</PackageIcon>
     <AssemblyVersion>0.0.5.1</AssemblyVersion>
+    <Title>OakIdeas Generic Repository</Title>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\Images\oakideasnew.png">
+    <None Include="..\..\Images\GenericRepository.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
