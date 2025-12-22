@@ -328,7 +328,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
             
-            await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
+            await Assert.ThrowsExactlyAsync<TaskCanceledException>(async () =>
                 await repository.Delete(customer, cts.Token));
         }
 
@@ -356,7 +356,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext(nameof(DeleteRange_NullCollection_ThrowsException));
             var repository = new SoftDeleteEntityFrameworkCoreRepository<SoftDeletableCustomer, InMemoryDataContext>(context);
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.DeleteRange((System.Collections.Generic.IEnumerable<SoftDeletableCustomer>)null!));
         }
 
@@ -366,7 +366,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext(nameof(DeleteRange_NullFilter_ThrowsException));
             var repository = new SoftDeleteEntityFrameworkCoreRepository<SoftDeletableCustomer, InMemoryDataContext>(context);
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.DeleteRange((System.Linq.Expressions.Expression<System.Func<SoftDeletableCustomer, bool>>)null!));
         }
 
@@ -376,7 +376,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext(nameof(Delete_NullEntity_ThrowsException));
             var repository = new SoftDeleteEntityFrameworkCoreRepository<SoftDeletableCustomer, InMemoryDataContext>(context);
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.Delete((SoftDeletableCustomer)null!));
         }
 
@@ -386,7 +386,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext(nameof(PermanentlyDelete_NullEntity_ThrowsException));
             var repository = new SoftDeleteEntityFrameworkCoreRepository<SoftDeletableCustomer, InMemoryDataContext>(context);
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.PermanentlyDelete((SoftDeletableCustomer)null!));
         }
 
@@ -396,7 +396,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext(nameof(Restore_NullEntity_ThrowsException));
             var repository = new SoftDeleteEntityFrameworkCoreRepository<SoftDeletableCustomer, InMemoryDataContext>(context);
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.Restore((SoftDeletableCustomer)null!));
         }
 
@@ -439,7 +439,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext(nameof(GetWithQuery_NullQuery_ThrowsException));
             var repository = new SoftDeleteEntityFrameworkCoreRepository<SoftDeletableCustomer, InMemoryDataContext>(context);
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.Get((Query<SoftDeletableCustomer>)null!));
         }
     }

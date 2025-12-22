@@ -58,8 +58,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			Assert.AreEqual(0, result.Count());
 		}
 
-		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
+		[TestMethod]		
 		public async Task InsertRange_NullCollection_ThrowsException()
 		{
 			// Arrange
@@ -67,7 +66,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
 			// Act
-			await repository.InsertRange(null);
+			await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.InsertRange(null));
 		}
 
 		[TestMethod]
@@ -85,7 +84,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 
 			// Act & Assert
 			// TaskCanceledException is a subclass of OperationCanceledException
-			await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
+			await Assert.ThrowsExactlyAsync<TaskCanceledException>(async () =>
 			{
 				await repository.InsertRange(customers, cts.Token);
 			});
@@ -141,15 +140,14 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task UpdateRange_NullCollection_ThrowsException()
 		{
 			// Arrange
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
-			// Act
-			await repository.UpdateRange(null);
+            // Act
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.UpdateRange(null));
 		}
 
 		[TestMethod]
@@ -189,15 +187,14 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task DeleteRange_NullCollection_ThrowsException()
 		{
 			// Arrange
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
-			// Act
-			await repository.DeleteRange((IEnumerable<Customer>)null);
+            // Act
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.DeleteRange((IEnumerable<Customer>)null));
 		}
 
 		[TestMethod]
@@ -240,15 +237,14 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task DeleteRange_NullFilter_ThrowsException()
 		{
 			// Arrange
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
-			// Act
-			await repository.DeleteRange((System.Linq.Expressions.Expression<Func<Customer, bool>>)null);
+            // Act
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.DeleteRange((System.Linq.Expressions.Expression<Func<Customer, bool>>)(object)null!));
 		}
 
 		[TestMethod]
