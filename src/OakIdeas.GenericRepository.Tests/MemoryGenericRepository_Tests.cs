@@ -103,27 +103,24 @@ namespace OakIdeas.GenericRepository.Tests
 
 		// Error handling tests
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task Insert_NullEntity_ThrowsException()
 		{
 			var repository = new MemoryGenericRepository<Customer>();
-			await repository.Insert(null);
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Insert(null));
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task Update_NullEntity_ThrowsException()
 		{
 			var repository = new MemoryGenericRepository<Customer>();
-			await repository.Update(null);
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Update(null));
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task Delete_NullEntity_ThrowsException()
 		{
 			var repository = new MemoryGenericRepository<Customer>();
-			await repository.Delete((Customer)null);
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Delete((Customer)null));
 		}
 
 		// Edge case tests

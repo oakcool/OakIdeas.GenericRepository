@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+  <PropertyGroup>    
     <Version>0.0.1.0-alpha</Version>
     <Description>In-memory implementation of OakIdeas.GenericRepository - suitable for testing and development scenarios.</Description>
     <PackageTags>repositorypattern, repository, memory, inmemory, testing</PackageTags>

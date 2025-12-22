@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
     <Version>0.0.5.1-alpha</Version>
     <Description>A very simple and generic implementation of the repository pattern for CRUD operations.</Description>
     <PackageTags>repositorypattern, repository, data</PackageTags>

@@ -287,7 +287,7 @@ namespace OakIdeas.GenericRepository.Tests
             var cts = new CancellationTokenSource();
             cts.Cancel();
             
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () =>
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
                 await repository.Delete(customer, cts.Token));
         }
 
@@ -329,7 +329,7 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.DeleteRange((System.Collections.Generic.IEnumerable<SoftDeletableCustomer>)null!));
         }
 
@@ -338,7 +338,7 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.DeleteRange((System.Linq.Expressions.Expression<System.Func<SoftDeletableCustomer, bool>>)null!));
         }
 
@@ -347,7 +347,7 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.Delete((SoftDeletableCustomer)null!));
         }
 
@@ -356,7 +356,7 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.PermanentlyDelete((SoftDeletableCustomer)null!));
         }
 
@@ -365,7 +365,7 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.Restore((SoftDeletableCustomer)null!));
         }
 
@@ -405,7 +405,7 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
                 await repository.Get((Query<SoftDeletableCustomer>)null!));
         }
     }

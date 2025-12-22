@@ -40,7 +40,7 @@ namespace OakIdeas.GenericRepository.Tests
             var customer = new Customer { Name = _entityDefaultName };
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Insert(customer, cts.Token)
             );
         }
@@ -71,7 +71,7 @@ namespace OakIdeas.GenericRepository.Tests
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Get(customer.ID, cts.Token)
             );
         }
@@ -101,7 +101,7 @@ namespace OakIdeas.GenericRepository.Tests
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Get(cancellationToken: cts.Token)
             );
         }
@@ -134,7 +134,7 @@ namespace OakIdeas.GenericRepository.Tests
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Update(customer, cts.Token)
             );
         }
@@ -166,7 +166,7 @@ namespace OakIdeas.GenericRepository.Tests
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Delete(customer, cts.Token)
             );
         }
@@ -198,7 +198,7 @@ namespace OakIdeas.GenericRepository.Tests
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Delete(customer.ID, cts.Token)
             );
         }
@@ -232,7 +232,7 @@ namespace OakIdeas.GenericRepository.Tests
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Get(
                     filter: c => c.Name == "Customer A",
                     cancellationToken: cts.Token)

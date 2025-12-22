@@ -303,7 +303,7 @@ public class SpecificationTests
         var spec = new NameStartsWithSpecification("John");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new AndSpecification<Customer>(null!, spec));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new AndSpecification<Customer>(null!, spec));
     }
 
     [TestMethod]
@@ -313,7 +313,7 @@ public class SpecificationTests
         var spec = new NameStartsWithSpecification("John");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new AndSpecification<Customer>(spec, null!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new AndSpecification<Customer>(spec, null!));
     }
 
     [TestMethod]
@@ -323,7 +323,7 @@ public class SpecificationTests
         var spec = new NameStartsWithSpecification("John");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new OrSpecification<Customer>(null!, spec));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new OrSpecification<Customer>(null!, spec));
     }
 
     [TestMethod]
@@ -333,13 +333,13 @@ public class SpecificationTests
         var spec = new NameStartsWithSpecification("John");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new OrSpecification<Customer>(spec, null!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new OrSpecification<Customer>(spec, null!));
     }
 
     [TestMethod]
     public void NotSpecification_NullSpecification_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new NotSpecification<Customer>(null!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new NotSpecification<Customer>(null!));
     }
 }

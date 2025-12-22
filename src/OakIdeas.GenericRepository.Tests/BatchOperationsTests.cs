@@ -48,14 +48,13 @@ namespace OakIdeas.GenericRepository.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task InsertRange_NullCollection_ThrowsException()
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
 
-			// Act
-			await repository.InsertRange(null);
+            // Act
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.InsertRange(null));
 		}
 
 		[TestMethod]
@@ -71,7 +70,7 @@ namespace OakIdeas.GenericRepository.Tests
 			cts.Cancel();
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () =>
+			await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
 			{
 				await repository.InsertRange(customers, cts.Token);
 			});
@@ -120,14 +119,13 @@ namespace OakIdeas.GenericRepository.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task UpdateRange_NullCollection_ThrowsException()
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
 
-			// Act
-			await repository.UpdateRange(null);
+            // Act
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.UpdateRange(null));
 		}
 
 		[TestMethod]
@@ -165,14 +163,13 @@ namespace OakIdeas.GenericRepository.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task DeleteRange_NullCollection_ThrowsException()
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
 
-			// Act
-			await repository.DeleteRange((IEnumerable<Customer>)null);
+            // Act
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.DeleteRange((IEnumerable<Customer>)null));
 		}
 
 		[TestMethod]
@@ -213,14 +210,13 @@ namespace OakIdeas.GenericRepository.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task DeleteRange_NullFilter_ThrowsException()
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
 
-			// Act
-			await repository.DeleteRange((System.Linq.Expressions.Expression<Func<Customer, bool>>)null);
+            // Act
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.DeleteRange((System.Linq.Expressions.Expression<Func<Customer, bool>>)null));
 		}
 
 		[TestMethod]

@@ -51,14 +51,13 @@ public class QueryObjectTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void Query_Where_NullFilter_ThrowsException()
     {
         // Arrange
         var query = new Query<TestEntity>();
 
         // Act & Assert
-        query.Where(null!);
+        Assert.ThrowsExactly<ArgumentNullException>(() => query.Where(null!));
     }
 
     [TestMethod]
@@ -76,14 +75,13 @@ public class QueryObjectTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void Query_Sort_NullOrderBy_ThrowsException()
     {
         // Arrange
         var query = new Query<TestEntity>();
 
         // Act & Assert
-        query.Sort(null!);
+        Assert.ThrowsExactly<ArgumentNullException>(() => query.Sort(null!));
     }
 
     [TestMethod]
@@ -117,14 +115,13 @@ public class QueryObjectTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void Query_Include_NullExpression_ThrowsException()
     {
         // Arrange
         var query = new Query<TestEntity>();
 
         // Act & Assert
-        query.Include(null!);
+        Assert.ThrowsExactly<ArgumentNullException>(() => query.Include(null!));
     }
 
     [TestMethod]
@@ -143,47 +140,43 @@ public class QueryObjectTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentOutOfRangeException))]
     public void Query_Paged_InvalidPage_ThrowsException()
     {
         // Arrange
         var query = new Query<TestEntity>();
 
         // Act & Assert
-        query.Paged(0, 10);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => query.Paged(0, 10));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentOutOfRangeException))]
     public void Query_Paged_InvalidPageNegative_ThrowsException()
     {
         // Arrange
         var query = new Query<TestEntity>();
 
         // Act & Assert
-        query.Paged(-1, 10);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => query.Paged(-1, 10));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentOutOfRangeException))]
     public void Query_Paged_InvalidPageSize_ThrowsException()
     {
         // Arrange
         var query = new Query<TestEntity>();
 
         // Act & Assert
-        query.Paged(1, 0);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => query.Paged(1, 0));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentOutOfRangeException))]
     public void Query_Paged_InvalidPageSizeNegative_ThrowsException()
     {
         // Arrange
         var query = new Query<TestEntity>();
 
         // Act & Assert
-        query.Paged(1, -1);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => query.Paged(1, -1));
     }
 
     [TestMethod]
@@ -391,14 +384,13 @@ public class QueryObjectTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public async Task MemoryRepository_GetWithQuery_NullQuery_ThrowsException()
     {
         // Arrange
         var repository = new MemoryGenericRepository<TestEntity>();
 
         // Act & Assert
-        await repository.Get((Query<TestEntity>)null!);
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Get((Query<TestEntity>)null!));
     }
 
     [TestMethod]
