@@ -172,7 +172,6 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public async Task GetWithQuery_NullQuery_ThrowsException()
         {
             // Arrange
@@ -180,7 +179,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
             // Act
-            await repository.Get((Query<Customer>)null!);
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Get((Query<Customer>)null!));
         }
 
         [TestMethod]

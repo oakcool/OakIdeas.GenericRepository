@@ -25,13 +25,12 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentException))]
 		public async Task InsertExisting_Entity()
 		{
 			var context = new InMemoryDataContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 			var newEntity = await repository.Insert(new Customer() { Name = _entityDefaultName });
-			var existing = await repository.Insert(newEntity);			
+            await Assert.ThrowsExactlyAsync<ArgumentException>(async () => await repository.Insert(newEntity));
 		}
 
 		[TestMethod]
@@ -118,30 +117,27 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 
 		// Error handling tests
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task Insert_NullEntity_ThrowsException()
 		{
 			var context = new InMemoryDataContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			await repository.Insert(null);
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Insert(null));
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task Update_NullEntity_ThrowsException()
 		{
 			var context = new InMemoryDataContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			await repository.Update(null);
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Update(null));
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public async Task Delete_NullEntity_ThrowsException()
 		{
 			var context = new InMemoryDataContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			await repository.Delete((Customer)null);
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Delete((Customer)null));
 		}
 
 		// Edge case tests
