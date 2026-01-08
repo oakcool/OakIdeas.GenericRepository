@@ -42,7 +42,7 @@ public class Customer : EntityBase
 var repository = new MemoryGenericRepository<Customer>();
 
 // Create (C)
-var customer = await repository.Insert(new Customer 
+var customer = await repository.Insert(new() 
 { 
     Name = "John Doe",
     Email = "john@example.com"
@@ -222,7 +222,7 @@ var activeCustomers = await repository.Get(
 
 // Combine specifications
 var activeJohns = new ActiveCustomerSpecification()
-    .And(new CustomerByNameSpecification("John"));
+    .And(new()ByNameSpecification("John"));
 
 var results = await repository.Get(filter: activeJohns);
 ```
@@ -284,9 +284,9 @@ var customers = await repository.Get(
 // Insert multiple entities
 var newCustomers = new List<Customer>
 {
-    new Customer { Name = "Alice" },
-    new Customer { Name = "Bob" },
-    new Customer { Name = "Charlie" }
+    new() { Name = "Alice" },
+    new() { Name = "Bob" },
+    new() { Name = "Charlie" }
 };
 var inserted = await repository.InsertRange(newCustomers);
 

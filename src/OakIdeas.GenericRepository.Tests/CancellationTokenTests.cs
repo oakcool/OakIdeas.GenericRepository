@@ -19,14 +19,14 @@ namespace OakIdeas.GenericRepository.Tests
             // Arrange
             var repository = new MemoryGenericRepository<Customer>();
             var cts = new CancellationTokenSource();
-            var customer = new Customer { Name = _entityDefaultName };
+            var customer = new Customer() { Name = _entityDefaultName };
 
             // Act
             var result = await repository.Insert(customer, cts.Token);
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsTrue(result.ID > 0);
+            Assert.IsGreaterThan(0, result.ID, "Inserted customer ID should be greater than 0.");
             Assert.AreEqual(_entityDefaultName, result.Name);
         }
 
@@ -37,10 +37,10 @@ namespace OakIdeas.GenericRepository.Tests
             var repository = new MemoryGenericRepository<Customer>();
             var cts = new CancellationTokenSource();
             cts.Cancel();
-            var customer = new Customer { Name = _entityDefaultName };
+            var customer = new Customer() { Name = _entityDefaultName };
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Insert(customer, cts.Token)
             );
         }
@@ -51,7 +51,7 @@ namespace OakIdeas.GenericRepository.Tests
             // Arrange
             var repository = new MemoryGenericRepository<Customer>();
             var cts = new CancellationTokenSource();
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
 
             // Act
             var result = await repository.Get(customer.ID, cts.Token);
@@ -64,14 +64,15 @@ namespace OakIdeas.GenericRepository.Tests
         [TestMethod]
         public async Task Get_WithCancelledToken_ShouldThrow()
         {
+            var cts = new CancellationTokenSource();
             // Arrange
             var repository = new MemoryGenericRepository<Customer>();
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
-            var cts = new CancellationTokenSource();
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
+            
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Get(customer.ID, cts.Token)
             );
         }
@@ -80,28 +81,30 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetAll_WithCancellationToken_ShouldSucceed()
         {
             // Arrange
-            var repository = new MemoryGenericRepository<Customer>();
             var cts = new CancellationTokenSource();
-            await repository.Insert(new Customer { Name = _entityDefaultName });
+            var repository = new MemoryGenericRepository<Customer>();
+            
+            await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
 
             // Act
             var result = await repository.Get(cancellationToken: cts.Token);
 
             // Assert
-            Assert.IsTrue(result.Count() > 0);
+            Assert.IsGreaterThan(0, result.Count());
         }
 
         [TestMethod]
         public async Task GetAll_WithCancelledToken_ShouldThrow()
         {
             // Arrange
-            var repository = new MemoryGenericRepository<Customer>();
-            await repository.Insert(new Customer { Name = _entityDefaultName });
             var cts = new CancellationTokenSource();
+            var repository = new MemoryGenericRepository<Customer>();
+            await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
+            
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Get(cancellationToken: cts.Token)
             );
         }
@@ -112,7 +115,7 @@ namespace OakIdeas.GenericRepository.Tests
             // Arrange
             var repository = new MemoryGenericRepository<Customer>();
             var cts = new CancellationTokenSource();
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
             customer.Name = "Updated Name";
 
             // Act
@@ -127,14 +130,15 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Update_WithCancelledToken_ShouldThrow()
         {
             // Arrange
-            var repository = new MemoryGenericRepository<Customer>();
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
-            customer.Name = "Updated Name";
             var cts = new CancellationTokenSource();
+            var repository = new MemoryGenericRepository<Customer>();
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
+            customer.Name = "Updated Name";
+            
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Update(customer, cts.Token)
             );
         }
@@ -145,14 +149,14 @@ namespace OakIdeas.GenericRepository.Tests
             // Arrange
             var repository = new MemoryGenericRepository<Customer>();
             var cts = new CancellationTokenSource();
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
 
             // Act
             var result = await repository.Delete(customer, cts.Token);
 
             // Assert
             Assert.IsTrue(result);
-            var deletedCustomer = await repository.Get(customer.ID);
+            var deletedCustomer = await repository.Get(customer.ID, cts.Token);
             Assert.IsNull(deletedCustomer);
         }
 
@@ -160,13 +164,14 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Delete_WithCancelledToken_ShouldThrow()
         {
             // Arrange
-            var repository = new MemoryGenericRepository<Customer>();
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
             var cts = new CancellationTokenSource();
+            var repository = new MemoryGenericRepository<Customer>();
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
+
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Delete(customer, cts.Token)
             );
         }
@@ -177,14 +182,14 @@ namespace OakIdeas.GenericRepository.Tests
             // Arrange
             var repository = new MemoryGenericRepository<Customer>();
             var cts = new CancellationTokenSource();
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
 
             // Act
             var result = await repository.Delete(customer.ID, cts.Token);
 
             // Assert
             Assert.IsTrue(result);
-            var deletedCustomer = await repository.Get(customer.ID);
+            var deletedCustomer = await repository.Get(customer.ID, cts.Token);
             Assert.IsNull(deletedCustomer);
         }
 
@@ -192,13 +197,14 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task DeleteById_WithCancelledToken_ShouldThrow()
         {
             // Arrange
-            var repository = new MemoryGenericRepository<Customer>();
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
             var cts = new CancellationTokenSource();
+            var repository = new MemoryGenericRepository<Customer>();
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
+            
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Delete(customer.ID, cts.Token)
             );
         }
@@ -209,8 +215,8 @@ namespace OakIdeas.GenericRepository.Tests
             // Arrange
             var repository = new MemoryGenericRepository<Customer>();
             var cts = new CancellationTokenSource();
-            await repository.Insert(new Customer { Name = "Customer A" });
-            await repository.Insert(new Customer { Name = "Customer B" });
+            await repository.Insert(new() { Name = "Customer A" }, cts.Token);
+            await repository.Insert(new() { Name = "Customer B" }, cts.Token);
 
             // Act
             var result = await repository.Get(
@@ -226,13 +232,14 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetFiltered_WithCancelledToken_ShouldThrow()
         {
             // Arrange
-            var repository = new MemoryGenericRepository<Customer>();
-            await repository.Insert(new Customer { Name = "Customer A" });
             var cts = new CancellationTokenSource();
+            var repository = new MemoryGenericRepository<Customer>();
+            await repository.Insert(new() { Name = "Customer A" }, cts.Token);
+            
             cts.Cancel();
 
             // Act & Assert
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(
                 async () => await repository.Get(
                     filter: c => c.Name == "Customer A",
                     cancellationToken: cts.Token)
@@ -247,8 +254,8 @@ namespace OakIdeas.GenericRepository.Tests
             var cts = new CancellationTokenSource();
 
             // Act
-            var customer1 = await repository.Insert(new Customer { Name = "Customer 1" }, cts.Token);
-            var customer2 = await repository.Insert(new Customer { Name = "Customer 2" }, cts.Token);
+            var customer1 = await repository.Insert(new() { Name = "Customer 1" }, cts.Token);
+            var customer2 = await repository.Insert(new() { Name = "Customer 2" }, cts.Token);
             var retrieved = await repository.Get(customer1.ID, cts.Token);
             customer1.Name = "Updated Customer 1";
             await repository.Update(customer1, cts.Token);
@@ -264,15 +271,16 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task DefaultCancellationToken_ShouldWorkAsExpected()
         {
             // Arrange
+            var cts = new CancellationTokenSource();
             var repository = new MemoryGenericRepository<Customer>();
 
             // Act - Use default CancellationToken (none)
-            var customer = await repository.Insert(new Customer { Name = _entityDefaultName });
-            var retrieved = await repository.Get(customer.ID);
+            var customer = await repository.Insert(new() { Name = _entityDefaultName }, cts.Token);
+            var retrieved = await repository.Get(customer.ID, cts.Token);
             customer.Name = "Updated";
-            await repository.Update(customer);
-            var all = await repository.Get();
-            await repository.Delete(customer.ID);
+            await repository.Update(customer, cts.Token);
+            var all = await repository.Get(cancellationToken: cts.Token);
+            await repository.Delete(customer.ID, cts.Token);
 
             // Assert - All operations should complete successfully
             Assert.IsNotNull(customer);

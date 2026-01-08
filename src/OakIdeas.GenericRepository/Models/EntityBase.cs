@@ -1,4 +1,6 @@
-﻿namespace OakIdeas.GenericRepository.Models;
+using System.ComponentModel.DataAnnotations;
+
+namespace OakIdeas.GenericRepository.Models;
 
 /// <summary>
 /// Base class for entities with a generic primary key type.
@@ -9,6 +11,7 @@ public abstract class EntityBase<TKey>
     /// <summary>
     /// Gets or sets the primary key identifier.
     /// </summary>
+    [Key]
     public TKey ID { get; set; } = default!;
 }
 

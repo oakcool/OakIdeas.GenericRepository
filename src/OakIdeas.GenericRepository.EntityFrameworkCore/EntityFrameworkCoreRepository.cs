@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using OakIdeas.GenericRepository;
 using OakIdeas.GenericRepository.Core;
 using OakIdeas.GenericRepository.Models;
@@ -156,6 +156,8 @@ public class EntityFrameworkCoreRepository<TEntity, TDataContext, TKey> : CoreRe
         ThrowIfNull(id);
 
         var entityToDelete = await dbSet.FindAsync(new object[] { id }, cancellationToken);
+        if (entityToDelete is null)
+            return false;
         return await Delete(entityToDelete, cancellationToken);
     }
 

@@ -33,10 +33,10 @@ public class LoggingMiddlewareTests
         await middleware.InvokeAsync(context, async ctx => await Task.CompletedTask);
 
         // Assert
-        Assert.AreEqual(2, logs.Count);
-        Assert.IsTrue(logs[0].Contains("Starting Insert operation on TestEntity"));
-        Assert.IsTrue(logs[1].Contains("Completed Insert operation on TestEntity"));
-        Assert.IsTrue(logs[1].Contains("Success: True"));
+        Assert.HasCount(2, logs);
+        StringAssert.Contains(logs[0], "Starting Insert operation on TestEntity");
+        StringAssert.Contains(logs[1], "Completed Insert operation on TestEntity");
+        StringAssert.Contains(logs[1], "Success: True");
     }
 
     [TestMethod]
@@ -58,8 +58,8 @@ public class LoggingMiddlewareTests
         });
 
         // Assert
-        Assert.AreEqual(2, logs.Count);
-        Assert.IsTrue(logs[1].Contains("ms"));
+        Assert.HasCount(2, logs);
+        StringAssert.Contains(logs[1], "ms");
     }
 
     [TestMethod]
@@ -89,9 +89,9 @@ public class LoggingMiddlewareTests
             // Expected
         }
 
-        Assert.AreEqual(2, logs.Count);
-        Assert.IsTrue(logs[1].Contains("Failed Delete operation"));
-        Assert.IsTrue(logs[1].Contains("Test error"));
+        Assert.HasCount(2, logs);
+        StringAssert.Contains(logs[1], "Failed Delete operation");
+        StringAssert.Contains(logs[1], "Test error");
     }
 
     [TestMethod]

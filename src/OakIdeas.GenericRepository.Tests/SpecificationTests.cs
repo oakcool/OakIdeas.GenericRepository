@@ -9,22 +9,18 @@ namespace OakIdeas.GenericRepository.Tests;
 /// <summary>
 /// Tests for the Specification pattern implementation.
 /// </summary>
-[TestClass]
+    [TestClass]
+    [DoNotParallelize]
 public class SpecificationTests
 {
+    public TestContext TestContext { get; set; }
+
     // Example specifications for testing
-    private class NameStartsWithSpecification : Specification<Customer>
+    private class NameStartsWithSpecification(string prefix) : Specification<Customer>
     {
-        private readonly string _prefix;
-
-        public NameStartsWithSpecification(string prefix)
-        {
-            _prefix = prefix;
-        }
-
         public override Expression<Func<Customer, bool>> ToExpression()
         {
-            return c => c.Name.StartsWith(_prefix);
+            return c => c.Name.StartsWith(prefix);
         }
     }
 
@@ -36,14 +32,9 @@ public class SpecificationTests
         }
     }
 
-    private class NameContainsSpecification : Specification<Customer>
+    private class NameContainsSpecification(string substring) : Specification<Customer>
     {
-        private readonly string _substring;
-
-        public NameContainsSpecification(string substring)
-        {
-            _substring = substring;
-        }
+        private readonly string _substring = substring;
 
         public override Expression<Func<Customer, bool>> ToExpression()
         {
@@ -62,7 +53,7 @@ public class SpecificationTests
 
         // Assert
         Assert.IsNotNull(expression);
-        Assert.IsInstanceOfType(expression, typeof(Expression<Func<Customer, bool>>));
+        Assert.IsInstanceOfType<Expression<Func<Customer, bool>>>(expression);
     }
 
     [TestMethod]
@@ -70,7 +61,7 @@ public class SpecificationTests
     {
         // Arrange
         var spec = new NameStartsWithSpecification("John");
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var result = spec.IsSatisfiedBy(customer);
@@ -84,7 +75,7 @@ public class SpecificationTests
     {
         // Arrange
         var spec = new NameStartsWithSpecification("John");
-        var customer = new Customer { ID = 1, Name = "Jane Doe" };
+        var customer = new Customer() { ID = 1, Name = "Jane Doe" };
 
         // Act
         var result = spec.IsSatisfiedBy(customer);
@@ -99,7 +90,7 @@ public class SpecificationTests
         // Arrange
         var spec1 = new NameStartsWithSpecification("John");
         var spec2 = new ActiveCustomerSpecification();
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var combinedSpec = spec1.And(spec2);
@@ -115,7 +106,7 @@ public class SpecificationTests
         // Arrange
         var spec1 = new NameStartsWithSpecification("Jane");
         var spec2 = new ActiveCustomerSpecification();
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var combinedSpec = spec1.And(spec2);
@@ -131,7 +122,7 @@ public class SpecificationTests
         // Arrange
         var spec1 = new NameStartsWithSpecification("John");
         var spec2 = new ActiveCustomerSpecification();
-        var customer = new Customer { ID = 0, Name = "John Doe" };
+        var customer = new Customer() { ID = 0, Name = "John Doe" };
 
         // Act
         var combinedSpec = spec1.And(spec2);
@@ -147,7 +138,7 @@ public class SpecificationTests
         // Arrange
         var spec1 = new NameStartsWithSpecification("John");
         var spec2 = new NameContainsSpecification("Doe");
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var combinedSpec = spec1.Or(spec2);
@@ -163,7 +154,7 @@ public class SpecificationTests
         // Arrange
         var spec1 = new NameStartsWithSpecification("John");
         var spec2 = new NameContainsSpecification("Smith");
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var combinedSpec = spec1.Or(spec2);
@@ -179,7 +170,7 @@ public class SpecificationTests
         // Arrange
         var spec1 = new NameStartsWithSpecification("Jane");
         var spec2 = new NameContainsSpecification("Doe");
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var combinedSpec = spec1.Or(spec2);
@@ -195,7 +186,7 @@ public class SpecificationTests
         // Arrange
         var spec1 = new NameStartsWithSpecification("Jane");
         var spec2 = new NameContainsSpecification("Smith");
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var combinedSpec = spec1.Or(spec2);
@@ -210,7 +201,7 @@ public class SpecificationTests
     {
         // Arrange
         var spec = new NameStartsWithSpecification("John");
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var notSpec = spec.Not();
@@ -225,14 +216,14 @@ public class SpecificationTests
     {
         // Arrange
         var spec = new NameStartsWithSpecification("Jane");
-        var customer = new Customer { ID = 1, Name = "John Doe" };
+        var customer = new Customer() { ID = 1, Name = "John Doe" };
 
         // Act
         var notSpec = spec.Not();
         var result = notSpec.IsSatisfiedBy(customer);
 
         // Assert
-        Assert.IsTrue(result);
+        Assert.IsTrue(result, "Expected result to be true when the specification does not match.");
     }
 
     [TestMethod]
@@ -244,19 +235,19 @@ public class SpecificationTests
         var spec2 = new NameContainsSpecification("Doe");
         var spec3 = new NameStartsWithSpecification("Jane");
         
-        var customer1 = new Customer { ID = 1, Name = "John Doe" };
-        var customer2 = new Customer { ID = 2, Name = "Jane Smith" };
-        var customer3 = new Customer { ID = 3, Name = "John Smith" };
-        var customer4 = new Customer { ID = 4, Name = "Bob Johnson" };
+        var customer1 = new Customer() { ID = 1, Name = "John Doe" };
+        var customer2 = new Customer() { ID = 2, Name = "Jane Smith" };
+        var customer3 = new Customer() { ID = 3, Name = "John Smith" };
+        var customer4 = new Customer() { ID = 4, Name = "Bob Johnson" };
 
         // Act
         var combinedSpec = spec1.And(spec2).Or(spec3);
 
         // Assert
-        Assert.IsTrue(combinedSpec.IsSatisfiedBy(customer1));  // Matches first part
-        Assert.IsTrue(combinedSpec.IsSatisfiedBy(customer2));  // Matches second part
-        Assert.IsFalse(combinedSpec.IsSatisfiedBy(customer3)); // Matches neither
-        Assert.IsFalse(combinedSpec.IsSatisfiedBy(customer4)); // Matches neither
+        Assert.IsTrue(combinedSpec.IsSatisfiedBy(customer1), "Expected customer1 to match the combined specification.");
+        Assert.IsTrue(combinedSpec.IsSatisfiedBy(customer2), "Expected customer2 to match the combined specification.");
+        Assert.IsFalse(combinedSpec.IsSatisfiedBy(customer3), "Expected customer3 not to match the combined specification.");
+        Assert.IsFalse(combinedSpec.IsSatisfiedBy(customer4), "Expected customer4 not to match the combined specification.");
     }
 
     [TestMethod]
@@ -267,10 +258,10 @@ public class SpecificationTests
         var spec1 = new NameStartsWithSpecification("John");
         var spec2 = new NameContainsSpecification("Doe");
         
-        var customer1 = new Customer { ID = 1, Name = "John Doe" };
-        var customer2 = new Customer { ID = 2, Name = "Jane Doe" };
-        var customer3 = new Customer { ID = 3, Name = "John Smith" };
-        var customer4 = new Customer { ID = 4, Name = "Bob Johnson" };
+        var customer1 = new Customer() { ID = 1, Name = "John Doe" };
+        var customer2 = new Customer() { ID = 2, Name = "Jane Doe" };
+        var customer3 = new Customer() { ID = 3, Name = "John Smith" };
+        var customer4 = new Customer() { ID = 4, Name = "Bob Johnson" };
 
         // Act
         var combinedSpec = spec1.Not().Or(spec2);
@@ -293,7 +284,7 @@ public class SpecificationTests
 
         // Assert
         Assert.IsNotNull(expression);
-        Assert.IsInstanceOfType(expression, typeof(Expression<Func<Customer, bool>>));
+        Assert.IsInstanceOfType<Expression<Func<Customer, bool>>>(expression);
     }
 
     [TestMethod]
@@ -303,7 +294,7 @@ public class SpecificationTests
         var spec = new NameStartsWithSpecification("John");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new AndSpecification<Customer>(null!, spec));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new AndSpecification<Customer>(null!, spec));
     }
 
     [TestMethod]
@@ -313,7 +304,7 @@ public class SpecificationTests
         var spec = new NameStartsWithSpecification("John");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new AndSpecification<Customer>(spec, null!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new AndSpecification<Customer>(spec, null!));
     }
 
     [TestMethod]
@@ -323,7 +314,7 @@ public class SpecificationTests
         var spec = new NameStartsWithSpecification("John");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new OrSpecification<Customer>(null!, spec));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new OrSpecification<Customer>(null!, spec));
     }
 
     [TestMethod]
@@ -333,13 +324,13 @@ public class SpecificationTests
         var spec = new NameStartsWithSpecification("John");
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new OrSpecification<Customer>(spec, null!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new OrSpecification<Customer>(spec, null!));
     }
 
     [TestMethod]
     public void NotSpecification_NullSpecification_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.ThrowsException<ArgumentNullException>(() => new NotSpecification<Customer>(null!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new NotSpecification<Customer>(null!));
     }
 }

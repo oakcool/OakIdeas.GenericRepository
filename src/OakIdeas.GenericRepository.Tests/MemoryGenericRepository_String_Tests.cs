@@ -6,18 +6,20 @@ using System.Threading.Tasks;
 
 namespace OakIdeas.GenericRepository.Tests
 {
-	[TestClass]
+    [TestClass]
 	public class MemoryGenericRepository_String_Tests
 	{
 		private readonly string _entityDefaultName = "Default Customer";
 		private readonly string _entityNewName = "New Name";
+
+        public TestContext TestContext { get; set; }
 
 		[TestMethod]
 		public async Task Insert_Entity()
 		{
 			var repository = new MemoryGenericRepository<CustomerString, string>();
 			var id = "CUST-001";
-			var newEntity = await repository.Insert(new CustomerString() { ID = id, Name = _entityDefaultName });
+			var newEntity = await repository.Insert(new() { ID = id, Name = _entityDefaultName }, TestContext.CancellationToken);
 			Assert.AreEqual(id, newEntity.ID);
 		}
 
@@ -26,8 +28,8 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			var repository = new MemoryGenericRepository<CustomerString, string>();
 			var id = "CUST-001";
-			var newEntity = await repository.Insert(new CustomerString() { ID = id, Name = _entityDefaultName });
-			var existing = await repository.Get(newEntity.ID);
+			var newEntity = await repository.Insert(new() { ID = id, Name = _entityDefaultName }, TestContext.CancellationToken);
+			var existing = await repository.Get(newEntity.ID, TestContext.CancellationToken);
 			Assert.IsNotNull(existing);
 			Assert.AreEqual(id, existing.ID);
 		}
@@ -37,8 +39,8 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			var repository = new MemoryGenericRepository<CustomerString, string>();
 			var id = "CUST-001";
-			var newEntity = await repository.Insert(new CustomerString() { ID = id, Name = _entityDefaultName });
-			var existing = await repository.Get(x => x.Name == _entityDefaultName);
+			var newEntity = await repository.Insert(new() { ID = id, Name = _entityDefaultName }, TestContext.CancellationToken);
+			var existing = await repository.Get(filter: x => x.Name == _entityDefaultName, cancellationToken: TestContext.CancellationToken);
 			Assert.IsNotNull(existing);
 			Assert.AreEqual(1, existing.Count());
 		}
@@ -48,13 +50,16 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			var repository = new MemoryGenericRepository<CustomerString, string>();
 			var id = "CUST-001";
-			var newEntity = await repository.Insert(new CustomerString() { ID = id, Name = _entityDefaultName });
-			var existing = await repository.Get(newEntity.ID);
-			existing.Name = _entityNewName;
-			await repository.Update(existing);
-			var updated = await repository.Get(newEntity.ID);
+			var newEntity = await repository.Insert(new() { ID = id, Name = _entityDefaultName }, TestContext.CancellationToken);
+			var existing = await repository.Get(newEntity.ID, TestContext.CancellationToken);
+			if (existing != null)
+			{
+				existing.Name = _entityNewName;
+				await repository.Update(existing, TestContext.CancellationToken);
+			}
+			var updated = await repository.Get(newEntity.ID, TestContext.CancellationToken);
 			Assert.IsNotNull(updated);
-			Assert.AreEqual(_entityNewName, updated.Name);
+			Assert.AreEqual(_entityNewName, updated!.Name);
 		}
 
 		[TestMethod]
@@ -62,9 +67,9 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			var repository = new MemoryGenericRepository<CustomerString, string>();
 			var id = "CUST-001";
-			var newEntity = await repository.Insert(new CustomerString() { ID = id, Name = _entityDefaultName });
-			await repository.Delete(newEntity);
-			var existing = await repository.Get(newEntity.ID);
+			var newEntity = await repository.Insert(new() { ID = id, Name = _entityDefaultName }, TestContext.CancellationToken);
+			await repository.Delete(newEntity, TestContext.CancellationToken);
+			var existing = await repository.Get(newEntity.ID, TestContext.CancellationToken);
 
 			Assert.IsNull(existing);
 		}
@@ -74,9 +79,9 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			var repository = new MemoryGenericRepository<CustomerString, string>();
 			var id = "CUST-001";
-			var newEntity = await repository.Insert(new CustomerString() { ID = id, Name = _entityDefaultName });
-			await repository.Delete(newEntity.ID);
-			var existing = await repository.Get(newEntity.ID);
+			var newEntity = await repository.Insert(new() { ID = id, Name = _entityDefaultName }, TestContext.CancellationToken);
+			await repository.Delete(newEntity.ID, TestContext.CancellationToken);
+			var existing = await repository.Get(newEntity.ID, TestContext.CancellationToken);
 
 			Assert.IsNull(existing);
 		}
@@ -85,7 +90,7 @@ namespace OakIdeas.GenericRepository.Tests
 		public async Task GetByID_NonExistentID_ReturnsNull()
 		{
 			var repository = new MemoryGenericRepository<CustomerString, string>();
-			var result = await repository.Get("NONEXISTENT");
+			var result = await repository.Get("NONEXISTENT", TestContext.CancellationToken);
 			Assert.IsNull(result);
 		}
 
@@ -93,10 +98,10 @@ namespace OakIdeas.GenericRepository.Tests
 		public async Task Get_MultipleEntities_ReturnsAll()
 		{
 			var repository = new MemoryGenericRepository<CustomerString, string>();
-			await repository.Insert(new CustomerString() { ID = "CUST-001", Name = _entityDefaultName });
-			await repository.Insert(new CustomerString() { ID = "CUST-002", Name = _entityNewName });
-			await repository.Insert(new CustomerString() { ID = "CUST-003", Name = "Third Customer" });
-			var result = await repository.Get();
+			await repository.Insert(new() { ID = "CUST-001", Name = _entityDefaultName }, TestContext.CancellationToken);
+			await repository.Insert(new() { ID = "CUST-002", Name = _entityNewName }, TestContext.CancellationToken);
+			await repository.Insert(new() { ID = "CUST-003", Name = "Third Customer" }, TestContext.CancellationToken);
+			var result = await repository.Get(cancellationToken: TestContext.CancellationToken);
 			Assert.AreEqual(3, result.Count());
 		}
 	}

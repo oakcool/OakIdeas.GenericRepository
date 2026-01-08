@@ -61,7 +61,7 @@ public class MiddlewarePipelineTests
         });
 
         // Assert
-        Assert.AreEqual(3, executionOrder.Count);
+        Assert.HasCount(3, executionOrder);
         Assert.AreEqual("First-Before", executionOrder[0]);
         Assert.AreEqual("Second-Before", executionOrder[1]);
         Assert.AreEqual("Final", executionOrder[2]);
@@ -106,7 +106,7 @@ public class MiddlewarePipelineTests
         });
 
         // Assert
-        Assert.AreEqual(1, executed.Count);
+        Assert.HasCount(1, executed);
         Assert.AreEqual("First", executed[0]);
         Assert.IsTrue(context.ShortCircuit);
     }

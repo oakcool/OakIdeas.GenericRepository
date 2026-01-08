@@ -59,9 +59,9 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "Jane Doe" });
-        await repository.Insert(new Customer { Name = "Bob Smith" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "Jane Doe" });
+        await repository.Insert(new() { Name = "Bob Smith" });
 
         var spec = new NameStartsWithSpecification("John");
 
@@ -78,9 +78,9 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "John Smith" });
-        await repository.Insert(new Customer { Name = "Jane Doe" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "John Smith" });
+        await repository.Insert(new() { Name = "Jane Doe" });
 
         var spec = new NameStartsWithSpecification("John")
             .And(new NameContainsSpecification("Doe"));
@@ -98,9 +98,9 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "Jane Smith" });
-        await repository.Insert(new Customer { Name = "Bob Johnson" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "Jane Smith" });
+        await repository.Insert(new() { Name = "Bob Johnson" });
 
         var spec = new NameStartsWithSpecification("John")
             .Or(new NameStartsWithSpecification("Jane"));
@@ -119,9 +119,9 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "Jane Doe" });
-        await repository.Insert(new Customer { Name = "Bob Smith" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "Jane Doe" });
+        await repository.Insert(new() { Name = "Bob Smith" });
 
         var spec = new NameStartsWithSpecification("John").Not();
 
@@ -138,10 +138,10 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "John Smith" });
-        await repository.Insert(new Customer { Name = "Jane Doe" });
-        await repository.Insert(new Customer { Name = "Bob Johnson" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "John Smith" });
+        await repository.Insert(new() { Name = "Jane Doe" });
+        await repository.Insert(new() { Name = "Bob Johnson" });
 
         // (StartsWith "John" AND Contains "Doe") OR StartsWith "Jane"
         var spec = new NameStartsWithSpecification("John")
@@ -162,10 +162,10 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Smith" });
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "John Adams" });
-        await repository.Insert(new Customer { Name = "Jane Doe" });
+        await repository.Insert(new() { Name = "John Smith" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "John Adams" });
+        await repository.Insert(new() { Name = "Jane Doe" });
 
         var spec = new NameStartsWithSpecification("John");
 
@@ -187,8 +187,8 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "Jane Doe" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "Jane Doe" });
 
         var spec = new NameStartsWithSpecification("John");
 
@@ -205,9 +205,9 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "Jane Doe" });
-        await repository.Insert(new Customer { Name = "John Smith" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "Jane Doe" });
+        await repository.Insert(new() { Name = "John Smith" });
 
         var spec = new NameStartsWithSpecification("John");
 
@@ -226,9 +226,9 @@ public class SpecificationIntegrationTests
     {
         // Arrange
         var repository = new MemoryGenericRepository<Customer>();
-        await repository.Insert(new Customer { Name = "John Doe" });
-        await repository.Insert(new Customer { Name = "Jane Doe" });
-        await repository.Insert(new Customer { Name = "Bob Smith" });
+        await repository.Insert(new() { Name = "John Doe" });
+        await repository.Insert(new() { Name = "Jane Doe" });
+        await repository.Insert(new() { Name = "Bob Smith" });
 
         // Act - dynamically build specification based on conditions
         Specification<Customer> spec = new NameContainsSpecification("Doe");

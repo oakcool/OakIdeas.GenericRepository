@@ -10,8 +10,11 @@ using System.Threading.Tasks;
 namespace OakIdeas.GenericRepository.Tests
 {
     [TestClass]
+    [DoNotParallelize]
     public class AsyncEnumerableTests
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public async Task GetAsyncEnumerable_EmptyRepository_ReturnsNoItems()
         {
@@ -30,9 +33,9 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetAsyncEnumerable_MultipleEntities_StreamsAllItems()
         {
             var repository = new MemoryGenericRepository<Customer>();
-            await repository.Insert(new Customer { Name = "Customer 1" });
-            await repository.Insert(new Customer { Name = "Customer 2" });
-            await repository.Insert(new Customer { Name = "Customer 3" });
+            await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 3" }, TestContext.CancellationToken);
 
             var count = 0;
             var names = new List<string>();
@@ -44,25 +47,25 @@ namespace OakIdeas.GenericRepository.Tests
             }
 
             Assert.AreEqual(3, count);
-            Assert.IsTrue(names.Contains("Customer 1"));
-            Assert.IsTrue(names.Contains("Customer 2"));
-            Assert.IsTrue(names.Contains("Customer 3"));
+            CollectionAssert.Contains(names, "Customer 1");
+            CollectionAssert.Contains(names, "Customer 2");
+            CollectionAssert.Contains(names, "Customer 3");
         }
 
         [TestMethod]
         public async Task GetAsyncEnumerable_WithFilter_ReturnsFilteredItems()
         {
             var repository = new MemoryGenericRepository<Customer>();
-            await repository.Insert(new Customer { Name = "Active Customer" });
-            await repository.Insert(new Customer { Name = "Inactive Customer" });
-            await repository.Insert(new Customer { Name = "Active User" });
+            await repository.Insert(new() { Name = "Active Customer" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Inactive Customer" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Active User" }, TestContext.CancellationToken);
 
             var count = 0;
             await foreach (var customer in repository.GetAsyncEnumerable(
                 filter: c => c.Name.Contains("Active")))
             {
                 count++;
-                Assert.IsTrue(customer.Name.Contains("Active"));
+                StringAssert.Contains(customer.Name, "Active");
             }
 
             Assert.AreEqual(2, count);
@@ -72,9 +75,9 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetAsyncEnumerable_WithOrdering_ReturnsOrderedItems()
         {
             var repository = new MemoryGenericRepository<Customer>();
-            await repository.Insert(new Customer { Name = "Charlie" });
-            await repository.Insert(new Customer { Name = "Alice" });
-            await repository.Insert(new Customer { Name = "Bob" });
+            await repository.Insert(new() { Name = "Charlie" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Alice" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Bob" }, TestContext.CancellationToken);
 
             var names = new List<string>();
             await foreach (var customer in repository.GetAsyncEnumerable(
@@ -83,7 +86,8 @@ namespace OakIdeas.GenericRepository.Tests
                 names.Add(customer.Name);
             }
 
-            Assert.AreEqual(3, names.Count);
+            CollectionAssert.AllItemsAreNotNull(names);
+            Assert.HasCount(3, names);
             Assert.AreEqual("Alice", names[0]);
             Assert.AreEqual("Bob", names[1]);
             Assert.AreEqual("Charlie", names[2]);
@@ -93,10 +97,10 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetAsyncEnumerable_WithFilterAndOrdering_ReturnsSortedFilteredItems()
         {
             var repository = new MemoryGenericRepository<Customer>();
-            await repository.Insert(new Customer { Name = "Active Z" });
-            await repository.Insert(new Customer { Name = "Inactive A" });
-            await repository.Insert(new Customer { Name = "Active A" });
-            await repository.Insert(new Customer { Name = "Active M" });
+            await repository.Insert(new() { Name = "Active Z" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Inactive A" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Active A" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Active M" }, TestContext.CancellationToken);
 
             var names = new List<string>();
             await foreach (var customer in repository.GetAsyncEnumerable(
@@ -106,7 +110,8 @@ namespace OakIdeas.GenericRepository.Tests
                 names.Add(customer.Name);
             }
 
-            Assert.AreEqual(3, names.Count);
+            CollectionAssert.AllItemsAreNotNull(names);
+            Assert.HasCount(3, names);
             Assert.AreEqual("Active A", names[0]);
             Assert.AreEqual("Active M", names[1]);
             Assert.AreEqual("Active Z", names[2]);
@@ -121,9 +126,9 @@ namespace OakIdeas.GenericRepository.Tests
             var entities = new List<Customer>();
             for (int i = 0; i < 1000; i++)
             {
-                entities.Add(new Customer { Name = $"Customer {i}" });
+                entities.Add(new() { Name = $"Customer {i}" });
             }
-            await repository.InsertRange(entities);
+            await repository.InsertRange(entities, TestContext.CancellationToken);
 
             var count = 0;
             await foreach (var customer in repository.GetAsyncEnumerable())
@@ -143,7 +148,7 @@ namespace OakIdeas.GenericRepository.Tests
             // Insert multiple entities
             for (int i = 0; i < 100; i++)
             {
-                await repository.Insert(new Customer { Name = $"Customer {i}" });
+                await repository.Insert(new() { Name = $"Customer {i}" }, TestContext.CancellationToken);
             }
 
             var cts = new CancellationTokenSource();
@@ -163,7 +168,7 @@ namespace OakIdeas.GenericRepository.Tests
             }
             catch (OperationCanceledException)
             {
-                Assert.IsTrue(count == 5, $"Expected count to be 5, but was {count}");
+                Assert.AreEqual(5, count, $"Expected count to be 5, but was {count}");
             }
         }
 
@@ -171,7 +176,7 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetAsyncEnumerable_WithPreCancelledToken_ThrowsImmediately()
         {
             var repository = new MemoryGenericRepository<Customer>();
-            await repository.Insert(new Customer { Name = "Customer 1" });
+            await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
 
             var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -194,8 +199,8 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetAsyncEnumerable_CanBeEnumeratedMultipleTimes()
         {
             var repository = new MemoryGenericRepository<Customer>();
-            await repository.Insert(new Customer { Name = "Customer 1" });
-            await repository.Insert(new Customer { Name = "Customer 2" });
+            await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken );
 
             var asyncEnumerable = repository.GetAsyncEnumerable();
 
@@ -225,7 +230,7 @@ namespace OakIdeas.GenericRepository.Tests
 
             for (int i = 0; i < 10; i++)
             {
-                await repository.Insert(new Customer { Name = $"Customer {i}" });
+                await repository.Insert(new() { Name = $"Customer {i}" }, TestContext.CancellationToken);
             }
 
             await foreach (var customer in repository.GetAsyncEnumerable())
@@ -235,7 +240,8 @@ namespace OakIdeas.GenericRepository.Tests
                 await Task.Delay(1); // Simulate some async processing
             }
 
-            Assert.AreEqual(10, processedIds.Count);
+            CollectionAssert.AllItemsAreNotNull(processedIds);
+            Assert.HasCount(10, processedIds);
             Assert.AreEqual(10, processedIds.Distinct().Count()); // All IDs should be unique
         }
     }

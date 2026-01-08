@@ -1,12 +1,9 @@
-﻿using OakIdeas.GenericRepository.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using OakIdeas.GenericRepository.Models;
 
 namespace OakIdeas.GenericRepository.Tests.Models
 {
-	public class Customer : EntityBase
-	{
-		public string Name { get; set; }
-	}
+public class Customer : EntityBase
+{
+    public string Name { get; set; } = string.Empty;
+}
 }

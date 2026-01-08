@@ -17,7 +17,7 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
-			var customer = new Customer { Name = _customerName };
+			var customer = new Customer() { Name = _customerName };
 			await repository.Insert(customer);
 
 			// Act - Use type-safe include (should be ignored in memory repository)
@@ -37,7 +37,7 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
-			var customer = new Customer { Name = _customerName };
+			var customer = new Customer() { Name = _customerName };
 			await repository.Insert(customer);
 
 			// Act - Empty include array
@@ -54,9 +54,9 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
-			await repository.Insert(new Customer { Name = "Customer 1" });
-			await repository.Insert(new Customer { Name = "Customer 2" });
-			await repository.Insert(new Customer { Name = "Customer 3" });
+			await repository.Insert(new() { Name = "Customer 1" });
+			await repository.Insert(new() { Name = "Customer 2" });
+			await repository.Insert(new() { Name = "Customer 3" });
 
 			// Act - Filter with type-safe include
 			var customers = await repository.Get(
@@ -74,9 +74,9 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
-			await repository.Insert(new Customer { Name = "C Customer" });
-			await repository.Insert(new Customer { Name = "A Customer" });
-			await repository.Insert(new Customer { Name = "B Customer" });
+			await repository.Insert(new() { Name = "C Customer" });
+			await repository.Insert(new() { Name = "A Customer" });
+			await repository.Insert(new() { Name = "B Customer" });
 
 			// Act - Order with type-safe include
 			var customers = await repository.Get(
@@ -86,7 +86,7 @@ namespace OakIdeas.GenericRepository.Tests
 
 			// Assert
 			var customerList = customers.ToList();
-			Assert.AreEqual(3, customerList.Count);
+            Assert.HasCount(3, customerList);
 			Assert.AreEqual("A Customer", customerList[0].Name);
 			Assert.AreEqual("B Customer", customerList[1].Name);
 			Assert.AreEqual("C Customer", customerList[2].Name);
@@ -97,7 +97,7 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
-			var customer = new Customer { Name = _customerName };
+			var customer = new Customer() { Name = _customerName };
 			await repository.Insert(customer);
 
 			var cancellationToken = new System.Threading.CancellationToken(canceled: false);
@@ -117,10 +117,10 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
-			await repository.Insert(new Customer { Name = "Active Customer 3" });
-			await repository.Insert(new Customer { Name = "Active Customer 1" });
-			await repository.Insert(new Customer { Name = "Inactive Customer" });
-			await repository.Insert(new Customer { Name = "Active Customer 2" });
+			await repository.Insert(new() { Name = "Active Customer 3" });
+			await repository.Insert(new() { Name = "Active Customer 1" });
+			await repository.Insert(new() { Name = "Inactive Customer" });
+			await repository.Insert(new() { Name = "Active Customer 2" });
 
 			// Act - Filter, order, and include
 			var customers = await repository.Get(
@@ -131,7 +131,7 @@ namespace OakIdeas.GenericRepository.Tests
 
 			// Assert
 			var customerList = customers.ToList();
-			Assert.AreEqual(3, customerList.Count);
+            Assert.HasCount(3, customerList);
 			Assert.AreEqual("Active Customer 1", customerList[0].Name);
 			Assert.AreEqual("Active Customer 2", customerList[1].Name);
 			Assert.AreEqual("Active Customer 3", customerList[2].Name);
@@ -142,7 +142,7 @@ namespace OakIdeas.GenericRepository.Tests
 		{
 			// Arrange
 			var repository = new MemoryGenericRepository<Customer>();
-			var customer = new Customer { Name = _customerName };
+			var customer = new Customer() { Name = _customerName };
 			await repository.Insert(customer);
 
 			// Act - Use old string-based include (backward compatibility)

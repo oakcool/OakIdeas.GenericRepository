@@ -1,5 +1,6 @@
-using OakIdeas.GenericRepository.Models;
 
+using OakIdeas.GenericRepository.Models;
+using System;
 namespace OakIdeas.GenericRepository.Tests.Models
 {
 	public class CustomerLong : EntityBase<long>

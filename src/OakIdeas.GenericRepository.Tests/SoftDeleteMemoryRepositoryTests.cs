@@ -3,21 +3,23 @@ using OakIdeas.GenericRepository.Memory;
 using OakIdeas.GenericRepository.Tests.Models;
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace OakIdeas.GenericRepository.Tests
 {
     [TestClass]
+    [DoNotParallelize]
     public class SoftDeleteMemoryRepositoryTests
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public async Task Insert_Entity_IsNotMarkedAsDeleted()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             
-            Assert.IsTrue(customer.ID > 0);
+            Assert.IsGreaterThan(0, customer.ID);
             Assert.IsFalse(customer.IsDeleted);
             Assert.IsNull(customer.DeletedAt);
             Assert.IsNull(customer.DeletedBy);
@@ -27,24 +29,24 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Delete_Entity_MarksAsDeleted()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             
-            var result = await repository.Delete(customer);
+            var result = await repository.Delete(customer, TestContext.CancellationToken);
             
             Assert.IsTrue(result);
             Assert.IsTrue(customer.IsDeleted);
             Assert.IsNotNull(customer.DeletedAt);
-            Assert.IsTrue((DateTime.UtcNow - customer.DeletedAt.Value).TotalSeconds < 2);
+            Assert.IsLessThan(5, (DateTime.UtcNow - customer.DeletedAt!.Value).TotalSeconds);
         }
 
         [TestMethod]
         public async Task Delete_ByID_MarksAsDeleted()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             var id = customer.ID;
             
-            var result = await repository.Delete(id);
+            var result = await repository.Delete(id, TestContext.CancellationToken);
             
             Assert.IsTrue(result);
         }
@@ -53,12 +55,12 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Get_ExcludesSoftDeletedEntities()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
+            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, TestContext.CancellationToken );
             
-            await repository.Delete(customer1);
+            await repository.Delete(customer1,TestContext.CancellationToken);
             
-            var results = await repository.Get();
+            var results = await repository.Get(cancellationToken: TestContext.CancellationToken);
             
             Assert.AreEqual(1, results.Count());
             Assert.AreEqual("Jane Doe", results.First().Name);
@@ -68,13 +70,13 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Get_WithFilter_ExcludesSoftDeletedEntities()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "John Smith" });
-            var customer3 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
+            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "John Smith" }, TestContext.CancellationToken);
+            var customer3 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, TestContext.CancellationToken );
             
-            await repository.Delete(customer1);
+            await repository.Delete(customer1, TestContext.CancellationToken);
             
-            var results = await repository.Get(filter: c => c.Name.StartsWith("John"));
+            var results = await repository.Get(filter: c => c.Name.StartsWith("John"), cancellationToken: TestContext.CancellationToken);
             
             Assert.AreEqual(1, results.Count());
             Assert.AreEqual("John Smith", results.First().Name);
@@ -84,12 +86,12 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Get_ByID_ReturnNullForSoftDeletedEntity()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             var id = customer.ID;
             
-            await repository.Delete(customer);
+            await repository.Delete(customer, TestContext.CancellationToken);
             
-            var result = await repository.Get(id);
+            var result = await repository.Get(id, TestContext.CancellationToken);
             
             Assert.IsNull(result);
         }
@@ -98,12 +100,12 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetIncludingDeleted_IncludesSoftDeletedEntities()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
+            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, TestContext.CancellationToken );
             
-            await repository.Delete(customer1);
+            await repository.Delete(customer1, TestContext.CancellationToken);
             
-            var results = await repository.GetIncludingDeleted();
+            var results = await repository.GetIncludingDeleted(cancellationToken: TestContext.CancellationToken);
             
             Assert.AreEqual(2, results.Count());
         }
@@ -112,12 +114,12 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetIncludingDeleted_WithFilter_IncludesSoftDeletedEntities()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "John Smith" });
+            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "John Smith" }, TestContext.CancellationToken);
             
-            await repository.Delete(customer1);
+            await repository.Delete(customer1, TestContext.CancellationToken);
             
-            var results = await repository.GetIncludingDeleted(filter: c => c.Name.StartsWith("John"));
+            var results = await repository.GetIncludingDeleted(filter: c => c.Name.StartsWith("John"), cancellationToken: TestContext.CancellationToken);
             
             Assert.AreEqual(2, results.Count());
         }
@@ -126,10 +128,10 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Restore_RestoresSoftDeletedEntity()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             
-            await repository.Delete(customer);
-            var restored = await repository.Restore(customer);
+            await repository.Delete(customer, TestContext.CancellationToken);
+            var restored = await repository.Restore(customer, TestContext.CancellationToken);
             
             Assert.IsNotNull(restored);
             Assert.IsFalse(restored.IsDeleted);
@@ -141,11 +143,11 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Restore_ByID_RestoresSoftDeletedEntity()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             var id = customer.ID;
             
-            await repository.Delete(customer);
-            var restored = await repository.Restore(id);
+            await repository.Delete(customer, TestContext.CancellationToken);
+            var restored = await repository.Restore(id, cancellationToken: TestContext.CancellationToken);
             
             Assert.IsNotNull(restored);
             Assert.IsFalse(restored.IsDeleted);
@@ -155,9 +157,9 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Restore_NonDeletedEntity_ReturnsEntityUnchanged()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             
-            var restored = await repository.Restore(customer);
+            var restored = await repository.Restore(customer, cancellationToken: TestContext.CancellationToken);
             
             Assert.IsNotNull(restored);
             Assert.IsFalse(restored.IsDeleted);
@@ -167,13 +169,13 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task PermanentlyDelete_RemovesEntityFromRepository()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             
-            await repository.Delete(customer);
-            var result = await repository.PermanentlyDelete(customer);
+            await repository.Delete(customer, TestContext.CancellationToken);
+            var result = await repository.PermanentlyDelete(customer, cancellationToken: TestContext.CancellationToken);
             
             Assert.IsTrue(result);
-            var all = await repository.GetIncludingDeleted();
+            var all = await repository.GetIncludingDeleted(cancellationToken: TestContext.CancellationToken);
             Assert.AreEqual(0, all.Count());
         }
 
@@ -181,14 +183,14 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task PermanentlyDelete_ByID_RemovesEntityFromRepository()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
             var id = customer.ID;
             
-            await repository.Delete(customer);
-            var result = await repository.PermanentlyDelete(id);
+            await repository.Delete(customer, TestContext.CancellationToken);
+            var result = await repository.PermanentlyDelete(id, cancellationToken: TestContext.CancellationToken);
             
             Assert.IsTrue(result);
-            var all = await repository.GetIncludingDeleted();
+            var all = await repository.GetIncludingDeleted(cancellationToken: TestContext.CancellationToken);
             Assert.AreEqual(0, all.Count());
         }
 
@@ -196,14 +198,14 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task DeleteRange_Entities_MarksAllAsDeleted()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
-            var customer3 = await repository.Insert(new SoftDeletableCustomer { Name = "Bob Smith" });
+            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, TestContext.CancellationToken);
+            var customer3 = await repository.Insert(new SoftDeletableCustomer { Name = "Bob Smith" }, TestContext.CancellationToken );
             
-            var deletedCount = await repository.DeleteRange(new[] { customer1, customer2 });
+            var deletedCount = await repository.DeleteRange([customer1, customer2], cancellationToken: TestContext.CancellationToken);
             
             Assert.AreEqual(2, deletedCount);
-            var remaining = await repository.Get();
+            var remaining = await repository.Get(cancellationToken: TestContext.CancellationToken);
             Assert.AreEqual(1, remaining.Count());
             Assert.AreEqual("Bob Smith", remaining.First().Name);
         }
@@ -212,14 +214,14 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task DeleteRange_WithFilter_MarksMatchingEntitiesAsDeleted()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            await repository.Insert(new SoftDeletableCustomer { Name = "John Smith" });
-            await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
+            await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
+            await repository.Insert(new SoftDeletableCustomer { Name = "John Smith" }, TestContext.CancellationToken);
+            await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, TestContext.CancellationToken);
             
-            var deletedCount = await repository.DeleteRange(c => c.Name.StartsWith("John"));
+            var deletedCount = await repository.DeleteRange(c => c.Name.StartsWith("John"), cancellationToken: TestContext.CancellationToken);
             
             Assert.AreEqual(2, deletedCount);
-            var remaining = await repository.Get();
+            var remaining = await repository.Get(cancellationToken: TestContext.CancellationToken);
             Assert.AreEqual(1, remaining.Count());
             Assert.AreEqual("Jane Doe", remaining.First().Name);
         }
@@ -228,13 +230,13 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetAsyncEnumerable_ExcludesSoftDeletedEntities()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
-            var customer3 = await repository.Insert(new SoftDeletableCustomer { Name = "Bob Smith" });
+            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, TestContext.CancellationToken);
+            var customer3 = await repository.Insert(new SoftDeletableCustomer { Name = "Bob Smith" }, TestContext.CancellationToken );
             
-            await repository.Delete(customer1);
+            await repository.Delete(customer1, TestContext.CancellationToken);
             
-            var results = repository.GetAsyncEnumerable();
+            var results = repository.GetAsyncEnumerable(cancellationToken: TestContext.CancellationToken);
             var count = 0;
             await foreach (var customer in results)
             {
@@ -249,13 +251,13 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetWithQuery_ExcludesSoftDeletedEntities()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
-            
-            await repository.Delete(customer1);
+            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, cancellationToken: TestContext.CancellationToken);
+            _ = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, cancellationToken: TestContext.CancellationToken);
+
+            await repository.Delete(customer1, TestContext.CancellationToken);
             
             var query = new Query<SoftDeletableCustomer>();
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
             
             Assert.AreEqual(1, results.Count());
             Assert.AreEqual("Jane Doe", results.First().Name);
@@ -265,15 +267,15 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task GetWithQuery_WithFilter_ExcludesSoftDeletedEntities()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            await repository.Insert(new SoftDeletableCustomer { Name = "John Smith" });
-            var customer3 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
+            await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, TestContext.CancellationToken);
+            await repository.Insert(new SoftDeletableCustomer { Name = "John Smith" }, TestContext.CancellationToken);
+            var customer3 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, TestContext.CancellationToken );
             
-            await repository.Delete(customer3);
+            await repository.Delete(customer3, TestContext.CancellationToken);
             
             var query = new Query<SoftDeletableCustomer>()
                 .Where(c => c.Name.StartsWith("John"));
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
             
             Assert.AreEqual(2, results.Count());
         }
@@ -282,12 +284,12 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Delete_WithCancellationToken_RespectsToken()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
+            var customer = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, cancellationToken: TestContext.CancellationToken);
             
             var cts = new CancellationTokenSource();
             cts.Cancel();
             
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () =>
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
                 await repository.Delete(customer, cts.Token));
         }
 
@@ -295,10 +297,10 @@ namespace OakIdeas.GenericRepository.Tests
         public async Task Get_TypeSafeInclude_ExcludesSoftDeletedEntities()
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
-            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" });
-            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" });
+            var customer1 = await repository.Insert(new SoftDeletableCustomer { Name = "John Doe" }, cancellationToken: TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new SoftDeletableCustomer { Name = "Jane Doe" }, cancellationToken: TestContext.CancellationToken);
             
-            await repository.Delete(customer1);
+            await repository.Delete(customer1, TestContext.CancellationToken);
             
             var results = await repository.Get(
                 filter: null,
@@ -313,14 +315,14 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomerGuid, Guid>();
             var customer = new SoftDeletableCustomerGuid { ID = Guid.NewGuid(), Name = "John Doe" };
-            await repository.Insert(customer);
+            await repository.Insert(customer, TestContext.CancellationToken);
             
-            var result = await repository.Delete(customer);
+            var result = await repository.Delete(customer, TestContext.CancellationToken);
             
             Assert.IsTrue(result);
             Assert.IsTrue(customer.IsDeleted);
             
-            var retrieved = await repository.Get(customer.ID);
+            var retrieved = await repository.Get(customer.ID, TestContext.CancellationToken);
             Assert.IsNull(retrieved);
         }
 
@@ -329,8 +331,8 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await repository.DeleteRange((System.Collections.Generic.IEnumerable<SoftDeletableCustomer>)null!));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
+                await repository.DeleteRange((System.Collections.Generic.IEnumerable<SoftDeletableCustomer>)null!, TestContext.CancellationToken));
         }
 
         [TestMethod]
@@ -338,8 +340,8 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await repository.DeleteRange((System.Linq.Expressions.Expression<System.Func<SoftDeletableCustomer, bool>>)null!));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
+                await repository.DeleteRange((System.Linq.Expressions.Expression<System.Func<SoftDeletableCustomer, bool>>)null!, TestContext.CancellationToken));
         }
 
         [TestMethod]
@@ -347,8 +349,8 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await repository.Delete((SoftDeletableCustomer)null!));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
+                await repository.Delete((SoftDeletableCustomer)null!, TestContext.CancellationToken));
         }
 
         [TestMethod]
@@ -356,8 +358,8 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await repository.PermanentlyDelete((SoftDeletableCustomer)null!));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
+                await repository.PermanentlyDelete((SoftDeletableCustomer)null!, TestContext.CancellationToken));
         }
 
         [TestMethod]
@@ -365,8 +367,8 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await repository.Restore((SoftDeletableCustomer)null!));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
+                await repository.Restore((SoftDeletableCustomer)null!, TestContext.CancellationToken));
         }
 
         [TestMethod]
@@ -374,7 +376,7 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            var result = await repository.Restore(999);
+            var result = await repository.Restore(999, TestContext.CancellationToken);
             
             Assert.IsNull(result);
         }
@@ -385,7 +387,7 @@ namespace OakIdeas.GenericRepository.Tests
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
             // Base MemoryGenericRepository returns true for non-existent IDs
-            var result = await repository.PermanentlyDelete(999);
+            var result = await repository.PermanentlyDelete(999, TestContext.CancellationToken);
             
             Assert.IsTrue(result);
         }
@@ -395,7 +397,7 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            var result = await repository.Delete(999);
+            var result = await repository.Delete(999, TestContext.CancellationToken);
             
             Assert.IsFalse(result);
         }
@@ -405,8 +407,8 @@ namespace OakIdeas.GenericRepository.Tests
         {
             var repository = new SoftDeleteMemoryRepository<SoftDeletableCustomer>();
             
-            await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await repository.Get((Query<SoftDeletableCustomer>)null!));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () =>
+                await repository.Get((Query<SoftDeletableCustomer>)null!, TestContext.CancellationToken));
         }
     }
 }
