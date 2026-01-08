@@ -18,11 +18,7 @@
     <PackageProjectUrl>https://github.com/oakcool/OakIdeas.GenericRepository</PackageProjectUrl>
     <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <NeutralLanguage>en-US</NeutralLanguage>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <!-- Note: PackageIcon commented out as the current icon file exceeds 1MB NuGet limit -->
-    <!-- <PackageIcon>GenericRepository.png</PackageIcon> -->
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <NeutralLanguage>en-US</NeutralLanguage>    
 
     <!-- Deterministic Build -->
     <Deterministic>true</Deterministic>
@@ -42,9 +38,8 @@
 
   <!-- Common Package Files for Packable Projects -->
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
-    <None Include="$(MSBuildThisFileDirectory)..\LICENSE" Pack="true" PackagePath="" Visible="false" />
-    <!-- Note: Icon file commented out as it exceeds 1MB NuGet limit - please optimize the image -->
-    <!-- <None Include="$(MSBuildThisFileDirectory)..\Images\GenericRepository.png" Pack="true" PackagePath="" Visible="false" /> -->
+    <None Include="$(MSBuildThisFileDirectory)..\LICENSE" Pack="true" PackagePath="" Visible="false" />    
+    <None Include="$(MSBuildThisFileDirectory)..\Images\GenericRepository.png" Pack="true" PackagePath="Images\" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="" Visible="false" Condition="Exists('$(MSBuildThisFileDirectory)..\README.md')" />
   </ItemGroup>
 
