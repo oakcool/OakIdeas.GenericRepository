@@ -7,6 +7,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0 or 1.0.0-alpha). Leave empty to use Directory.Build.props version.'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -30,12 +35,57 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v1.1.1
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v1.1.1
+      with:
+        useConfigFile: true
+        configFilePath: src/GitVersion.yml
+
+    - name: Extract version from tag or input
+      id: version
+      run: |
+        if [ -n "${{ github.event.inputs.version }}" ]; then
+          # Manual workflow dispatch with version input (highest priority)
+          VERSION="${{ github.event.inputs.version }}"
+          echo "? Using manually specified version: $VERSION"
+        elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+          # Tag push - extract version from tag (remove 'v' prefix)
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "? Extracted version from git tag: $VERSION"
+        elif [ -n "${{ steps.gitversion.outputs.semVer }}" ]; then
+          # Use GitVersion calculated version (automatic increment)
+          VERSION="${{ steps.gitversion.outputs.semVer }}"
+          echo "? Using GitVersion calculated version: $VERSION"
+          echo "  - Base Version: ${{ steps.gitversion.outputs.majorMinorPatch }}"
+          echo "  - Pre-release: ${{ steps.gitversion.outputs.preReleaseTag }}"
+          echo "  - Commits since version: ${{ steps.gitversion.outputs.commitsSinceVersionSource }}"
+        else
+          # Fallback to Directory.Build.props
+          echo "? Using version from Directory.Build.props (fallback)"
+          VERSION=""
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "?? Final version to use: ${VERSION:-'from Directory.Build.props'}"
+
     - name: Restore dependencies
       run: dotnet restore
       working-directory: ./src
 
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: |
+        if [ -n "${{ steps.version.outputs.version }}" ]; then
+          echo "Building with version: ${{ steps.version.outputs.version }}"
+          dotnet build --configuration Release --no-restore /p:Version=${{ steps.version.outputs.version }}
+        else
+          echo "Building with version from Directory.Build.props"
+          dotnet build --configuration Release --no-restore
+        fi
       working-directory: ./src
 
     - name: Run unit tests
@@ -43,8 +93,21 @@ jobs:
       working-directory: ./src
 
     - name: Generate nuget packages
-      run: dotnet pack --configuration Release --no-build -o nupkg
+      run: |
+        if [ -n "${{ steps.version.outputs.version }}" ]; then
+          echo "Packing with version: ${{ steps.version.outputs.version }}"
+          dotnet pack --configuration Release --no-build -o nupkg /p:Version=${{ steps.version.outputs.version }}
+        else
+          echo "Packing with version from Directory.Build.props"
+          dotnet pack --configuration Release --no-build -o nupkg
+        fi
       working-directory: ./src
+
+    - name: List generated packages
+      run: |
+        echo "Generated NuGet packages:"
+        ls -la *.nupkg
+      working-directory: ./src/nupkg
 
     - name: Publish nuget packages
       run: |

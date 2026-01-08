@@ -1,0 +1,42 @@
+# GitVersion Configuration
+# This file configures automatic semantic versioning based on git history
+# See: https://gitversion.net/docs/reference/configuration
+
+# Use Mainline mode for automatic version increment on every commit
+mode: Mainline
+next-version: 0.0.6
+
+branches:
+  master:
+    mode: ContinuousDeployment
+    tag: alpha
+    increment: Patch
+    regex: ^master$|^main$
+    is-mainline: true
+  release:
+    mode: ContinuousDeployment
+    tag: ''
+    increment: None
+    regex: ^releases?[/-]v?
+    is-release-branch: true
+  feature:
+    mode: ContinuousDeployment
+    tag: alpha.{BranchName}
+    increment: Inherit
+    regex: ^features?[/-]
+  pull-request:
+    mode: ContinuousDeployment
+    tag: pr.{BranchName}
+    increment: Inherit
+    regex: ^(pull|pull\-requests|pr)[/-]
+
+# Ignore commits with these tags
+commit-message-incrementing: Enabled
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+no-bump-message: '\+semver:\s?(none|skip)'
+
+ignore:
+  sha: []
+

@@ -37,22 +37,33 @@ The repository uses GitHub Actions for continuous integration, deployment, and s
 **Triggers:**
 - Pushes to `master` branch
 - Version tags (v*)
-- Manual workflow dispatch
+- Manual workflow dispatch (with optional version input)
 
 **What it does:**
-- Builds the solution in Release configuration
+- Determines version from: manual input, git tag, or Directory.Build.props
+- Builds the solution in Release configuration with the determined version
 - Runs all tests to ensure quality
-- Generates NuGet packages
+- Generates NuGet packages with the correct version
+- Lists generated packages for verification
 - Publishes packages to NuGet.org
+
+**Version Strategies:**
+1. **Git Tags** (e.g., `v1.0.0`) - Extracts version from tag, overrides Directory.Build.props
+2. **Directory.Build.props** - Uses centralized version when no tag present
+3. **Manual Input** - Custom version via workflow dispatch (highest priority)
 
 **Requirements:**
 - `NUGET_API_KEY` secret must be configured in repository settings
 
 **Key Features:**
 - Environment protection (production)
-- Automatic package versioning from tags
+- Centralized version management via Directory.Build.props
+- Flexible versioning: supports tags, centralized config, or manual override
 - Skip duplicate packages
 - Full git history for proper versioning
+- Package listing before publish for verification
+
+**See Also:** `src/GITHUB-ACTIONS-DEPLOYMENT.md` for detailed usage guide
 
 ### CodeQL Security Analysis
 

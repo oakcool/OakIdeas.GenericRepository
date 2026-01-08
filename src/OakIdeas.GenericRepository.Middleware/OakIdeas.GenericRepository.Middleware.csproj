@@ -1,12 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Version>0.0.1.0-alpha</Version>
-    <Description>Middleware infrastructure for OakIdeas.GenericRepository - enables extensible pipeline processing for repository operations.</Description>
-    <PackageTags>repositorypattern, repository, middleware, pipeline</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>0.0.1.0</AssemblyVersion>
-  </PropertyGroup>
+<PropertyGroup>
+  <Description>Middleware infrastructure for OakIdeas.GenericRepository - enables extensible pipeline processing for repository operations.</Description>
+  <PackageTags>repositorypattern, repository, middleware, pipeline</PackageTags>
+  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+</PropertyGroup>
 
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

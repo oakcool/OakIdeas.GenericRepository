@@ -1,18 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Version>0.0.5.2-alpha</Version>
-    <Description>A very simple extention to OakIdeas.GenericRepository that adds support for EF Core</Description>
-    <PackageTags>repositorypattern, repository, data, EntityFrameworkCore</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>      
-      - EntityFrameworkCore Repository      
-    </PackageReleaseNotes>
-    <AssemblyVersion>0.0.5.2</AssemblyVersion>
-    <FileVersion>0.0.5.2</FileVersion>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors>$(WarningsNotAsErrors);NU1605;SYSLIB0011</WarningsAsErrors>
-  </PropertyGroup>
+<PropertyGroup>
+  <Description>A very simple extention to OakIdeas.GenericRepository that adds support for EF Core</Description>
+  <PackageTags>repositorypattern, repository, data, EntityFrameworkCore</PackageTags>
+  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  <PackageReleaseNotes>      
+    - EntityFrameworkCore Repository      
+  </PackageReleaseNotes>
+  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  <WarningsAsErrors>$(WarningsNotAsErrors);NU1605;SYSLIB0011</WarningsAsErrors>
+</PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />

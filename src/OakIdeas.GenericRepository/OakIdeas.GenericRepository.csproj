@@ -1,14 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.0.5.1-alpha</Version>
     <Description>A very simple and generic implementation of the repository pattern for CRUD operations.</Description>
     <PackageTags>repositorypattern, repository, data</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReleaseNotes>- Generic interface
 - EntityBase
 - Memory Repository (Dictionary based)</PackageReleaseNotes>
-    <AssemblyVersion>0.0.5.1</AssemblyVersion>
     <Title>OakIdeas Generic Repository</Title>
   </PropertyGroup>
 
