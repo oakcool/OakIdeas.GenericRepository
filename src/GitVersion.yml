@@ -2,22 +2,27 @@
 # GitVersion 6.x compatible configuration
 # This enables automatic semantic versioning based on git history
 
-mode: ContinuousDeployment
+mode: ContinuousDelivery
 tag-prefix: 'v'
+label: '{BranchName}'
+increment: Inherit
 
 # Commit message patterns for version bumping
 major-version-bump-message: '\+semver:\s?(breaking|major)'
 minor-version-bump-message: '\+semver:\s?(feature|minor)'
 patch-version-bump-message: '\+semver:\s?(fix|patch)'
 no-bump-message: '\+semver:\s?none'
-
+strategies:
+- ConfiguredNextVersion
+- Mainline
 # Branch configuration
 branches:
-  main:
+  master:
     regex: ^master$
     mode: ContinuousDeployment
     label: ''
     increment: Patch
+    is-main-branch: true
     track-merge-target: false
     
   develop:
@@ -62,6 +67,7 @@ assembly-informational-format: '{InformationalVersion}'
 
 # Commit message incrementing
 commit-message-incrementing: Enabled
+regex: ''
 
 # Merge message formats
 merge-message-formats: {}
