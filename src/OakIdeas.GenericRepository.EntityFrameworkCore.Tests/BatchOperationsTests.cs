@@ -10,10 +10,12 @@ using System.Threading.Tasks;
 
 namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 {
-	[TestClass]
+    [TestClass]
 	public class BatchOperationsTests
 	{
-		private InMemoryDataContext CreateContext()
+        public TestContext TestContext { get; set; }
+
+		private static InMemoryDataContext CreateContext()
 		{
 			var options = new DbContextOptionsBuilder<InMemoryDataContext>()
 				.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -29,17 +31,17 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 			var customers = new List<Customer>
 			{
-				new Customer { Name = "Customer 1" },
-				new Customer { Name = "Customer 2" },
-				new Customer { Name = "Customer 3" }
+				new() { Name = "Customer 1" },
+				new() { Name = "Customer 2" },
+				new() { Name = "Customer 3" }
 			};
 
 			// Act
-			var result = await repository.InsertRange(customers);
+			var result = await repository.InsertRange(customers, TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(3, result.Count());
-			var allCustomers = await repository.Get();
+			var allCustomers = await repository.Get(cancellationToken: TestContext.CancellationToken);
 			Assert.AreEqual(3, allCustomers.Count());
 		}
 
@@ -52,7 +54,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var customers = new List<Customer>();
 
 			// Act
-			var result = await repository.InsertRange(customers);
+			var result = await repository.InsertRange(customers, TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(0, result.Count());
@@ -66,7 +68,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
 			// Act
-			await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.InsertRange(null));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.InsertRange(null!, TestContext.CancellationToken));
 		}
 
 		[TestMethod]
@@ -77,17 +79,14 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 			var customers = new List<Customer>
 			{
-				new Customer { Name = "Customer 1" }
+				new() { Name = "Customer 1" }
 			};
 			var cts = new CancellationTokenSource();
 			cts.Cancel();
 
 			// Act & Assert
 			// TaskCanceledException is a subclass of OperationCanceledException
-			await Assert.ThrowsExactlyAsync<TaskCanceledException>(async () =>
-			{
-				await repository.InsertRange(customers, cts.Token);
-			});
+			await Assert.ThrowsExactlyAsync<TaskCanceledException>(async () => await repository.InsertRange(customers, cts.Token));
 		}
 
 		[TestMethod]
@@ -96,9 +95,9 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			// Arrange
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			var customer1 = await repository.Insert(new Customer { Name = "Customer 1" });
-			var customer2 = await repository.Insert(new Customer { Name = "Customer 2" });
-			var customer3 = await repository.Insert(new Customer { Name = "Customer 3" });
+            var customer1 = await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken);
+            var customer3 = await repository.Insert(new() { Name = "Customer 3" }, TestContext.CancellationToken);
 
 			// Detach entities to simulate real-world scenario
 			context.Entry(customer1).State = EntityState.Detached;
@@ -112,16 +111,16 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var toUpdate = new List<Customer> { customer1, customer2, customer3 };
 
 			// Act
-			var result = await repository.UpdateRange(toUpdate);
+			var result = await repository.UpdateRange(toUpdate, TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(3, result.Count());
-			var updated1 = await repository.Get(customer1.ID);
-			var updated2 = await repository.Get(customer2.ID);
-			var updated3 = await repository.Get(customer3.ID);
-			Assert.AreEqual("Updated 1", updated1.Name);
-			Assert.AreEqual("Updated 2", updated2.Name);
-			Assert.AreEqual("Updated 3", updated3.Name);
+			var updated1 = await repository.Get(customer1.ID, TestContext.CancellationToken);
+            var updated2 = await repository.Get(customer2.ID, TestContext.CancellationToken);
+            var updated3 = await repository.Get(customer3.ID, TestContext.CancellationToken);
+            Assert.AreEqual("Updated 1", updated1?.Name);
+            Assert.AreEqual("Updated 2", updated2?.Name);
+            Assert.AreEqual("Updated 3", updated3?.Name);
 		}
 
 		[TestMethod]
@@ -133,7 +132,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var customers = new List<Customer>();
 
 			// Act
-			var result = await repository.UpdateRange(customers);
+			var result = await repository.UpdateRange(customers, TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(0, result.Count());
@@ -147,7 +146,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
             // Act
-            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.UpdateRange(null));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.UpdateRange(null!, TestContext.CancellationToken));
 		}
 
 		[TestMethod]
@@ -156,18 +155,18 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			// Arrange
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			var customer1 = await repository.Insert(new Customer { Name = "Customer 1" });
-			var customer2 = await repository.Insert(new Customer { Name = "Customer 2" });
-			var customer3 = await repository.Insert(new Customer { Name = "Customer 3" });
+            var customer1 = await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken);
+            var customer3 = await repository.Insert(new() { Name = "Customer 3" }, TestContext.CancellationToken);
 
 			var toDelete = new List<Customer> { customer1, customer2, customer3 };
 
 			// Act
-			var deletedCount = await repository.DeleteRange(toDelete);
+			var result = await repository.DeleteRange(toDelete, TestContext.CancellationToken);
 
 			// Assert
-			Assert.AreEqual(3, deletedCount);
-			var remaining = await repository.Get();
+			Assert.AreEqual(3, result);
+			var remaining = await repository.Get(cancellationToken: TestContext.CancellationToken);
 			Assert.AreEqual(0, remaining.Count());
 		}
 
@@ -180,7 +179,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var customers = new List<Customer>();
 
 			// Act
-			var deletedCount = await repository.DeleteRange(customers);
+			var deletedCount = await repository.DeleteRange(customers, TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(0, deletedCount);
@@ -194,7 +193,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
             // Act
-            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.DeleteRange((IEnumerable<Customer>)null));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.DeleteRange((IEnumerable<Customer>)null!, TestContext.CancellationToken));
 		}
 
 		[TestMethod]
@@ -203,17 +202,17 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			// Arrange
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			await repository.Insert(new Customer { Name = "Active Customer 1" });
-			await repository.Insert(new Customer { Name = "Active Customer 2" });
-			await repository.Insert(new Customer { Name = "Inactive Customer 1" });
-			await repository.Insert(new Customer { Name = "Inactive Customer 2" });
+            await repository.Insert(new() { Name = "Active Customer 1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Active Customer 2" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Inactive Customer 1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Inactive Customer 2" }, TestContext.CancellationToken);
 
 			// Act
-			var deletedCount = await repository.DeleteRange(c => c.Name.StartsWith("Active"));
+            var deletedCount = await repository.DeleteRange(c => c.Name.StartsWith("Active"), TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(2, deletedCount);
-			var remaining = await repository.Get();
+            var remaining = await repository.Get(cancellationToken: TestContext.CancellationToken);
 			Assert.AreEqual(2, remaining.Count());
 			Assert.IsTrue(remaining.All(c => c.Name.StartsWith("Inactive")));
 		}
@@ -224,15 +223,15 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			// Arrange
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			await repository.Insert(new Customer { Name = "Customer 1" });
-			await repository.Insert(new Customer { Name = "Customer 2" });
+            await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken);
 
 			// Act
-			var deletedCount = await repository.DeleteRange(c => c.Name.StartsWith("NonExistent"));
+            var deletedCount = await repository.DeleteRange(c => c.Name.StartsWith("NonExistent"), TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(0, deletedCount);
-			var remaining = await repository.Get();
+            var remaining = await repository.Get(cancellationToken: TestContext.CancellationToken);
 			Assert.AreEqual(2, remaining.Count());
 		}
 
@@ -244,7 +243,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
             // Act
-            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.DeleteRange((System.Linq.Expressions.Expression<Func<Customer, bool>>)(object)null!));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.DeleteRange((System.Linq.Expressions.Expression<Func<Customer, bool>>)(object)null!, TestContext.CancellationToken));
 		}
 
 		[TestMethod]
@@ -254,16 +253,16 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 			var customers = Enumerable.Range(1, 100)
-				.Select(i => new Customer { Name = $"Customer {i}" })
+				.Select(i => new Customer() { Name = $"Customer {i}" })
 				.ToList();
 
 			// Act
-			var result = await repository.InsertRange(customers);
+            var result = await repository.InsertRange(customers, TestContext.CancellationToken);
 
-			// Assert
-			Assert.AreEqual(100, result.Count());
-			var allCustomers = await repository.Get();
-			Assert.AreEqual(100, allCustomers.Count());
+            // Assert
+            Assert.AreEqual(100, result.Count());
+            var allCustomers = await repository.Get(cancellationToken: TestContext.CancellationToken);
+            Assert.AreEqual(100, allCustomers.Count());
 		}
 
 		[TestMethod]
@@ -272,8 +271,8 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			// Arrange
 			var context = CreateContext();
 			var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-			var customer1 = await repository.Insert(new Customer { Name = "Customer 1" });
-			var customer2 = await repository.Insert(new Customer { Name = "Customer 2" });
+            var customer1 = await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            var customer2 = await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken);
 
 			// Detach entities
 			context.Entry(customer1).State = EntityState.Detached;
@@ -282,11 +281,11 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var toDelete = new List<Customer> { customer1, customer2 };
 
 			// Act
-			var deletedCount = await repository.DeleteRange(toDelete);
+            var deletedCount = await repository.DeleteRange(toDelete, TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(2, deletedCount);
-			var remaining = await repository.Get();
+            var remaining = await repository.Get(cancellationToken: TestContext.CancellationToken);
 			Assert.AreEqual(0, remaining.Count());
 		}
 
@@ -300,28 +299,28 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			// Insert initial batch
 			var initialCustomers = new List<Customer>
 			{
-				new Customer { Name = "Customer 1" },
-				new Customer { Name = "Customer 2" },
-				new Customer { Name = "Customer 3" },
-				new Customer { Name = "Customer 4" },
-				new Customer { Name = "Customer 5" }
+				new() { Name = "Customer 1" },
+				new() { Name = "Customer 2" },
+				new() { Name = "Customer 3" },
+				new() { Name = "Customer 4" },
+				new() { Name = "Customer 5" }
 			};
-			await repository.InsertRange(initialCustomers);
+            await repository.InsertRange(initialCustomers, TestContext.CancellationToken);
 
 			// Update some
-			var toUpdate = (await repository.Get(c => c.Name == "Customer 1" || c.Name == "Customer 2")).ToList();
+            var toUpdate = (await repository.Get(c => c.Name == "Customer 1" || c.Name == "Customer 2", cancellationToken: TestContext.CancellationToken)).ToList();
 			foreach (var customer in toUpdate)
 			{
-				customer.Name = customer.Name + " Updated";
+				customer.Name += " Updated";
 				context.Entry(customer).State = EntityState.Detached;
 			}
-			await repository.UpdateRange(toUpdate);
+            await repository.UpdateRange(toUpdate, TestContext.CancellationToken);
 
 			// Delete some by filter
-			await repository.DeleteRange(c => c.Name == "Customer 3");
+            await repository.DeleteRange(c => c.Name == "Customer 3", TestContext.CancellationToken);
 
 			// Act - verify final state
-			var remaining = await repository.Get();
+            var remaining = await repository.Get(cancellationToken: TestContext.CancellationToken);
 
 			// Assert
 			Assert.AreEqual(4, remaining.Count());
@@ -341,29 +340,29 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 			var repository2 = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context2);
 
 			var customers1 = Enumerable.Range(1, 50)
-				.Select(i => new Customer { Name = $"Customer {i}" })
+				.Select(i => new Customer() { Name = $"Customer {i}" })
 				.ToList();
 
 			var customers2 = Enumerable.Range(1, 50)
-				.Select(i => new Customer { Name = $"Customer {i}" })
+				.Select(i => new Customer() { Name = $"Customer {i}" })
 				.ToList();
 
 			// Act - InsertRange
 			var startBatch = DateTime.UtcNow;
-			await repository1.InsertRange(customers1);
+            await repository1.InsertRange(customers1, TestContext.CancellationToken);
 			var batchTime = DateTime.UtcNow - startBatch;
 
 			// Act - Individual inserts
 			var startIndividual = DateTime.UtcNow;
-			foreach (var customer in customers2)
-			{
-				await repository2.Insert(customer);
-			}
+            foreach (var customer in customers2)
+            {
+                await repository2.Insert(customer, TestContext.CancellationToken);
+            }
 			var individualTime = DateTime.UtcNow - startIndividual;
 
 			// Assert - both complete successfully
-			var result1 = await repository1.Get();
-			var result2 = await repository2.Get();
+            var result1 = await repository1.Get(cancellationToken: TestContext.CancellationToken);
+            var result2 = await repository2.Get(cancellationToken: TestContext.CancellationToken);
 			Assert.AreEqual(50, result1.Count());
 			Assert.AreEqual(50, result2.Count());
 

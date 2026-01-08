@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Contexts;
+using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Helpers;
 using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Models;
 using System;
 using System.Collections.Generic;
@@ -13,13 +14,15 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
     [TestClass]
     public class AsyncEnumerableEFCoreTests
     {
-        private InMemoryDataContext CreateContext([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
+        private static InMemoryDataContext CreateContext([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
         {
             var options = new DbContextOptionsBuilder<InMemoryDataContext>()
                 .UseInMemoryDatabase(databaseName: $"TestDB_{testName}_{Guid.NewGuid()}")
                 .Options;
             return new InMemoryDataContext(options);
         }
+
+        public TestContext TestContext { get; set; }
 
         [TestMethod]
         public async Task GetAsyncEnumerable_EmptyRepository_ReturnsNoItems()
@@ -28,7 +31,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             var count = 0;
 
-            await foreach (var customer in repository.GetAsyncEnumerable())
+            await foreach (var customer in repository.GetAsyncEnumerable(cancellationToken: TestContext.CancellationToken))
             {
                 count++;
             }
@@ -42,23 +45,23 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             
-            await repository.Insert(new Customer { Name = "Customer 1" });
-            await repository.Insert(new Customer { Name = "Customer 2" });
-            await repository.Insert(new Customer { Name = "Customer 3" });
+            await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 3" }, TestContext.CancellationToken);
 
             var count = 0;
             var names = new List<string>();
 
-            await foreach (var customer in repository.GetAsyncEnumerable())
+            await foreach (var customer in repository.GetAsyncEnumerable(cancellationToken: TestContext.CancellationToken))
             {
                 count++;
                 names.Add(customer.Name);
             }
 
             Assert.AreEqual(3, count);
-            Assert.IsTrue(names.Contains("Customer 1"));
-            Assert.IsTrue(names.Contains("Customer 2"));
-            Assert.IsTrue(names.Contains("Customer 3"));
+            CollectionAssert.Contains(names, "Customer 1");
+            CollectionAssert.Contains(names, "Customer 2");
+            CollectionAssert.Contains(names, "Customer 3");
         }
 
         [TestMethod]
@@ -67,16 +70,17 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             
-            await repository.Insert(new Customer { Name = "Active Customer" });
-            await repository.Insert(new Customer { Name = "Inactive Customer" });
-            await repository.Insert(new Customer { Name = "Active User" });
+            await repository.Insert(new() { Name = "Active Customer" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Inactive Customer" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Active User" }, TestContext.CancellationToken);
 
             var count = 0;
             await foreach (var customer in repository.GetAsyncEnumerable(
-                filter: c => c.Name.Contains("Active")))
+                filter: c => c.Name.Contains("Active"),
+                cancellationToken: TestContext.CancellationToken))
             {
                 count++;
-                Assert.IsTrue(customer.Name.Contains("Active"));
+                Assert.Contains("Active", customer.Name);
             }
 
             Assert.AreEqual(2, count);
@@ -88,18 +92,19 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             
-            await repository.Insert(new Customer { Name = "Charlie" });
-            await repository.Insert(new Customer { Name = "Alice" });
-            await repository.Insert(new Customer { Name = "Bob" });
+            await repository.Insert(new() { Name = "Charlie" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Alice" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Bob" }, TestContext.CancellationToken);
 
             var names = new List<string>();
             await foreach (var customer in repository.GetAsyncEnumerable(
-                orderBy: q => q.OrderBy(c => c.Name)))
+                orderBy: q => q.OrderBy(c => c.Name),
+                cancellationToken: TestContext.CancellationToken))
             {
                 names.Add(customer.Name);
             }
 
-            Assert.AreEqual(3, names.Count);
+            Assert.HasCount(3, names);
             Assert.AreEqual("Alice", names[0]);
             Assert.AreEqual("Bob", names[1]);
             Assert.AreEqual("Charlie", names[2]);
@@ -111,20 +116,21 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             
-            await repository.Insert(new Customer { Name = "Active Z" });
-            await repository.Insert(new Customer { Name = "Inactive A" });
-            await repository.Insert(new Customer { Name = "Active A" });
-            await repository.Insert(new Customer { Name = "Active M" });
+            await repository.Insert(new() { Name = "Active Z" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Inactive A" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Active A" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Active M" }, TestContext.CancellationToken);
 
             var names = new List<string>();
             await foreach (var customer in repository.GetAsyncEnumerable(
                 filter: c => c.Name.Contains("Active"),
-                orderBy: q => q.OrderBy(c => c.Name)))
+                orderBy: q => q.OrderBy(c => c.Name),
+                cancellationToken: TestContext.CancellationToken))
             {
                 names.Add(customer.Name);
             }
 
-            Assert.AreEqual(3, names.Count);
+            Assert.HasCount(3, names);
             Assert.AreEqual("Active A", names[0]);
             Assert.AreEqual("Active M", names[1]);
             Assert.AreEqual("Active Z", names[2]);
@@ -140,12 +146,12 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var entities = new List<Customer>();
             for (int i = 0; i < 500; i++)
             {
-                entities.Add(new Customer { Name = $"Customer {i}" });
+                entities.Add(new() { Name = $"Customer {i}" });
             }
-            await repository.InsertRange(entities);
+            await repository.InsertRange(entities, TestContext.CancellationToken);
 
             var count = 0;
-            await foreach (var customer in repository.GetAsyncEnumerable())
+            await foreach (var customer in repository.GetAsyncEnumerable(cancellationToken: TestContext.CancellationToken))
             {
                 count++;
                 Assert.IsNotNull(customer.Name);
@@ -161,12 +167,20 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             
             // Insert multiple entities
-            var entities = new List<Customer>();
-            for (int i = 0; i < 100; i++)
+            var entities = new List<Customer>
             {
-                entities.Add(new Customer { Name = $"Customer {i}" });
-            }
-            await repository.InsertRange(entities);
+                new() { Name = "Customer 0" },
+                new() { Name = "Customer 1" },
+                new() { Name = "Customer 2" },
+                new() { Name = "Customer 3" },
+                new() { Name = "Customer 4" },
+                new() { Name = "Customer 5" },
+                new() { Name = "Customer 6" },
+                new() { Name = "Customer 7" },
+                new() { Name = "Customer 8" },
+                new() { Name = "Customer 9" }
+            };
+            await repository.InsertRange(entities, TestContext.CancellationToken);
 
             var cts = new CancellationTokenSource();
             var count = 0;
@@ -185,7 +199,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             }
             catch (OperationCanceledException)
             {
-                Assert.IsTrue(count == 5, $"Expected count to be 5, but was {count}");
+                Assert.AreEqual(5, count, $"Expected count to be 5, but was {count}");
             }
         }
 
@@ -196,10 +210,10 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var customerRepo = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
             // Insert customer - just test that include properties doesn't cause errors
-            var customer = await customerRepo.Insert(new Customer { Name = "Test Customer" });
+            var customer = await customerRepo.Insert(new() { Name = "Test Customer" }, TestContext.CancellationToken);
 
             var count = 0;
-            await foreach (var cust in customerRepo.GetAsyncEnumerable(includeProperties: "Products"))
+            await foreach (var cust in customerRepo.GetAsyncEnumerable(includeProperties: "Products", cancellationToken: TestContext.CancellationToken))
             {
                 count++;
                 Assert.IsNotNull(cust.Products);
@@ -216,21 +230,21 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             
-            await repository.Insert(new Customer { Name = "Customer 1" });
-            await repository.Insert(new Customer { Name = "Customer 2" });
+            await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken);
 
-            var asyncEnumerable = repository.GetAsyncEnumerable();
+            var asyncEnumerable = repository.GetAsyncEnumerable(cancellationToken: TestContext.CancellationToken);
 
             // First enumeration
             var count1 = 0;
-            await foreach (var customer in asyncEnumerable)
+            await foreach (var customer in repository.GetAsyncEnumerable(cancellationToken: TestContext.CancellationToken))
             {
                 count1++;
             }
 
             // Second enumeration
             var count2 = 0;
-            await foreach (var customer in asyncEnumerable)
+            await foreach (var customer in repository.GetAsyncEnumerable(cancellationToken: TestContext.CancellationToken))
             {
                 count2++;
             }
@@ -249,18 +263,18 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var entities = new List<Customer>();
             for (int i = 0; i < 20; i++)
             {
-                entities.Add(new Customer { Name = $"Customer {i}" });
+                entities.Add(new() { Name = $"Customer {i}" });
             }
-            await repository.InsertRange(entities);
+            await repository.InsertRange(entities, TestContext.CancellationToken);
 
-            await foreach (var customer in repository.GetAsyncEnumerable())
+            await foreach (var customer in repository.GetAsyncEnumerable(cancellationToken: TestContext.CancellationToken))
             {
                 // Process each item
                 processedIds.Add(customer.ID);
-                await Task.Delay(1); // Simulate some async processing
+                await Task.Delay(1, TestContext.CancellationToken); // Simulate some async processing
             }
 
-            Assert.AreEqual(20, processedIds.Count);
+            Assert.HasCount(20, processedIds);
             Assert.AreEqual(20, processedIds.Distinct().Count()); // All IDs should be unique
         }
 
@@ -270,21 +284,21 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             
-            await repository.Insert(new Customer { Name = "Customer 1" });
-            await repository.Insert(new Customer { Name = "Customer 2" });
-            await repository.Insert(new Customer { Name = "Customer 3" });
+            await repository.Insert(new() { Name = "Customer 1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 2" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer 3" }, TestContext.CancellationToken);
 
             // Get all using traditional method
-            var allTraditional = (await repository.Get()).OrderBy(c => c.Name).ToList();
+            var allTraditional = (await repository.Get(cancellationToken: TestContext.CancellationToken)).OrderBy(c => c.Name).ToList();
 
             // Get all using async enumerable
             var allAsync = new List<Customer>();
-            await foreach (var customer in repository.GetAsyncEnumerable(orderBy: q => q.OrderBy(c => c.Name)))
+            await foreach (var customer in repository.GetAsyncEnumerable(orderBy: q => q.OrderBy(c => c.Name), cancellationToken: TestContext.CancellationToken))
             {
                 allAsync.Add(customer);
             }
 
-            Assert.AreEqual(allTraditional.Count, allAsync.Count);
+            Assert.HasCount(allTraditional.Count, allAsync);
             for (int i = 0; i < allTraditional.Count; i++)
             {
                 Assert.AreEqual(allTraditional[i].ID, allAsync[i].ID);

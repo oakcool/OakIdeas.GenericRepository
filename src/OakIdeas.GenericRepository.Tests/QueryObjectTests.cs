@@ -95,7 +95,7 @@ public class QueryObjectTests
 
         // Assert
         Assert.IsNotNull(query.Includes);
-        Assert.AreEqual(1, query.Includes.Count);
+        Assert.HasCount(1, query.Includes);
         Assert.AreSame(query, result); // Fluent API
     }
 
@@ -111,7 +111,7 @@ public class QueryObjectTests
 
         // Assert
         Assert.IsNotNull(query.Includes);
-        Assert.AreEqual(2, query.Includes.Count);
+        Assert.HasCount(2, query.Includes);
     }
 
     [TestMethod]
@@ -280,7 +280,7 @@ public class QueryObjectTests
         Assert.IsNotNull(query.Filter);
         Assert.IsNotNull(query.OrderBy);
         Assert.IsNotNull(query.Includes);
-        Assert.AreEqual(1, query.Includes.Count);
+        Assert.HasCount(1, query.Includes);
         Assert.AreEqual(2, query.Page);
         Assert.AreEqual(20, query.PageSize);
         Assert.IsTrue(query.AsNoTracking);

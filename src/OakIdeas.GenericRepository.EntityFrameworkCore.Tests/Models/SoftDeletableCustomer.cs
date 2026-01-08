@@ -1,5 +1,5 @@
-using OakIdeas.GenericRepository.Models;
 
+using OakIdeas.GenericRepository.Models;
 namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Models
 {
     public class SoftDeletableCustomer : SoftDeletableEntity

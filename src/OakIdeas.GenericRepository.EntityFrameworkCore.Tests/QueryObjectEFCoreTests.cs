@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Contexts;
+using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Helpers;
 using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Models;
 using System;
 using System.Linq;
@@ -11,7 +12,11 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
     [TestClass]
     public class QueryObjectEFCoreTests
     {
-        private InMemoryDataContext CreateContext([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
+        public TestContext TestContext { get; set; }
+
+        private static readonly string[] expected = ["Alice", "Bob", "Charlie"];
+
+        private static InMemoryDataContext CreateContext([System.Runtime.CompilerServices.CallerMemberName] string testName = "")
         {
             var options = new DbContextOptionsBuilder<InMemoryDataContext>()
                 .UseInMemoryDatabase(databaseName: $"QueryObjectTests_{testName}_{Guid.NewGuid()}")
@@ -26,18 +31,18 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             // Arrange
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-            await repository.Insert(new Customer { Name = "Active Customer" });
-            await repository.Insert(new Customer { Name = "Inactive Customer" });
-            await repository.Insert(new Customer { Name = "Active Person" });
+            await repository.Insert(new() { Name = "Active Customer" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Inactive Customer" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Active Person" }, TestContext.CancellationToken);
 
             var query = new Query<Customer>()
                 .Where(c => c.Name.StartsWith("Active"));
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(2, results.Count());
+            CollectionAssertEx.HasCount(results, 2);
             Assert.IsTrue(results.All(c => c.Name.StartsWith("Active")));
         }
 
@@ -47,19 +52,19 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             // Arrange
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-            await repository.Insert(new Customer { Name = "Charlie" });
-            await repository.Insert(new Customer { Name = "Alice" });
-            await repository.Insert(new Customer { Name = "Bob" });
+            await repository.Insert(new() { Name = "Charlie" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Alice" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Bob" }, TestContext.CancellationToken);
 
             var query = new Query<Customer>()
                 .Sort(q => q.OrderBy(c => c.Name));
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
 
             // Assert
             var names = results.Select(c => c.Name).ToList();
-            CollectionAssert.AreEqual(new[] { "Alice", "Bob", "Charlie" }, names);
+            CollectionAssert.AreEqual(expected, names);
         }
 
         [TestMethod]
@@ -71,7 +76,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             
             for (int i = 1; i <= 25; i++)
             {
-                await repository.Insert(new Customer { Name = $"Customer{i:D2}" });
+                await repository.Insert(new() { Name = $"Customer{i:D2}" }, TestContext.CancellationToken);
             }
 
             var query = new Query<Customer>()
@@ -79,10 +84,10 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
                 .Paged(2, 10);
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(10, results.Count());
+            CollectionAssertEx.HasCount(results, 10);
             // Second page should start at Customer11
             Assert.AreEqual("Customer11", results.First().Name);
             Assert.AreEqual("Customer20", results.Last().Name);
@@ -96,22 +101,22 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             var productRepository = new EntityFrameworkCoreRepository<Product, InMemoryDataContext>(context);
 
-            var customer = await repository.Insert(new Customer { Name = "Customer1" });
-            var product = await productRepository.Insert(new Product { Name = "Product1" });
+            var customer = await repository.Insert(new() { Name = "Customer1" }, TestContext.CancellationToken);
+            var product = await productRepository.Insert(new Product { Name = "Product1" }, TestContext.CancellationToken);
             customer.Products.Add(product);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.CancellationToken);
 
             var query = new Query<Customer>()
                 .Include(c => c.Products);
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
             var customerWithProducts = results.First();
 
             // Assert
-            Assert.IsNotNull(customerWithProducts.Products);
-            Assert.AreEqual(1, customerWithProducts.Products.Count);
-            Assert.AreEqual("Product1", customerWithProducts.Products.First().Name);
+            Assert.IsNotNull(customerWithProducts.Products, "Products should not be null.");
+            Assert.HasCount(1, customerWithProducts.Products, "There should be one product associated with the customer.");
+            Assert.AreEqual("Product1", customerWithProducts.Products.First().Name, "The product name should be Product1.");
         }
 
         [TestMethod]
@@ -120,13 +125,13 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             // Arrange
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-            await repository.Insert(new Customer { Name = "Test Customer" });
+            await repository.Insert(new() { Name = "Test Customer" }, TestContext.CancellationToken);
 
             var query = new Query<Customer>()
                 .WithNoTracking();
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
             var customer = results.First();
 
             // Assert
@@ -143,10 +148,10 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 
             for (int i = 1; i <= 50; i++)
             {
-                await repository.Insert(new Customer
+                await repository.Insert(new()
                 {
                     Name = $"Customer{i:D2}"
-                });
+                }, TestContext.CancellationToken);
             }
 
             var query = new Query<Customer>()
@@ -156,10 +161,10 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
                 .WithNoTracking();
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(5, results.Count());
+            CollectionAssertEx.HasCount(results, 5);
             Assert.IsTrue(results.All(c => c.ID > 25));
             
             // Check descending order
@@ -179,7 +184,7 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
 
             // Act
-            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Get((Query<Customer>)null!));
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(async () => await repository.Get((Query<Customer>)null!, TestContext.CancellationToken));
         }
 
         [TestMethod]
@@ -188,17 +193,17 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             // Arrange
             var context = CreateContext();
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
-            await repository.Insert(new Customer { Name = "Customer1" });
-            await repository.Insert(new Customer { Name = "Customer2" });
-            await repository.Insert(new Customer { Name = "Customer3" });
+            await repository.Insert(new() { Name = "Customer1" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer2" }, TestContext.CancellationToken);
+            await repository.Insert(new() { Name = "Customer3" }, TestContext.CancellationToken);
 
             var query = new Query<Customer>();
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(3, results.Count());
+            CollectionAssertEx.HasCount(results, 3, "The query should return all customers.");
         }
 
         [TestMethod]
@@ -210,10 +215,10 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 
             for (int i = 1; i <= 20; i++)
             {
-                await repository.Insert(new Customer
+                await repository.Insert(new()
                 {
                     Name = $"Customer{i:D2}"
-                });
+                }, TestContext.CancellationToken);
             }
 
             // Create a reusable query - filter customers with ID > 10
@@ -222,21 +227,21 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
                 .Sort(q => q.OrderBy(c => c.Name));
 
             // Act - Use the query multiple times
-            var allFiltered = await repository.Get(filteredCustomersQuery);
+            var allFiltered = await repository.Get(filteredCustomersQuery, cancellationToken: TestContext.CancellationToken);
 
             // Modify for pagination - first page
             filteredCustomersQuery.Paged(1, 5);
-            var firstPage = await repository.Get(filteredCustomersQuery);
+            var firstPage = await repository.Get(filteredCustomersQuery, cancellationToken: TestContext.CancellationToken);
 
             // Second page
             filteredCustomersQuery.Paged(2, 5);
-            var secondPage = await repository.Get(filteredCustomersQuery);
+            var secondPage = await repository.Get(filteredCustomersQuery, cancellationToken: TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(10, allFiltered.Count()); // Customers 11-20
-            Assert.AreEqual(5, firstPage.Count()); // First 5 filtered customers
-            Assert.AreEqual(5, secondPage.Count()); // Next 5 filtered customers
-            Assert.AreNotEqual(firstPage.First().Name, secondPage.First().Name);
+            Assert.AreEqual(10, allFiltered.Count(), "There should be 10 filtered customers."); // Customers 11-20
+            Assert.AreEqual(5, firstPage.Count(), "The first page should contain 5 customers."); // First 5 filtered customers
+            Assert.AreEqual(5, secondPage.Count(), "The second page should contain 5 customers."); // Next 5 filtered customers
+            Assert.AreNotEqual(firstPage.First().Name, secondPage.First().Name, "The first customer on the first page should not be the same as the first customer on the second page.");
         }
 
         [TestMethod]
@@ -247,24 +252,24 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
             var repository = new EntityFrameworkCoreRepository<Customer, InMemoryDataContext>(context);
             var productRepository = new EntityFrameworkCoreRepository<Product, InMemoryDataContext>(context);
 
-            var customer = await repository.Insert(new Customer { Name = "Customer1" });
-            var product1 = await productRepository.Insert(new Product { Name = "Product1" });
-            var product2 = await productRepository.Insert(new Product { Name = "Product2" });
+            var customer = await repository.Insert(new() { Name = "Customer1" }, TestContext.CancellationToken);
+            var product1 = await productRepository.Insert(new Product { Name = "Product1" }, TestContext.CancellationToken);
+            var product2 = await productRepository.Insert(new Product { Name = "Product2" }, TestContext.CancellationToken);
             customer.Products.Add(product1);
             customer.Products.Add(product2);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.CancellationToken);
 
             var query = new Query<Customer>()
                 .Include(c => c.Products)
                 .Where(c => c.Name == "Customer1");
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
             var customerWithProducts = results.First();
 
             // Assert
-            Assert.IsNotNull(customerWithProducts.Products);
-            Assert.AreEqual(2, customerWithProducts.Products.Count);
+            Assert.IsNotNull(customerWithProducts.Products, "Products should not be null.");
+            Assert.HasCount(2, customerWithProducts.Products, "There should be two products associated with the customer.");
         }
 
         [TestMethod]
@@ -276,10 +281,10 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
 
             for (int i = 1; i <= 30; i++)
             {
-                await repository.Insert(new Customer
+                await repository.Insert(new()
                 {
                     Name = $"Customer{i:D2}"
-                });
+                }, TestContext.CancellationToken);
             }
 
             var query = new Query<Customer>()
@@ -288,14 +293,14 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests
                 .Paged(1, 10);
 
             // Act
-            var results = await repository.Get(query);
+            var results = await repository.Get(query, cancellationToken: TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(10, results.Count());
+            CollectionAssertEx.HasCount(results, 10, "The results should contain 10 customers.");
             // All should have ID > 10 (filtered)
-            Assert.IsTrue(results.All(c => c.ID > 10));
+            Assert.IsTrue(results.All(c => c.ID > 10), "All customers should have an ID greater than 10.");
             // First page of filtered customers should start at Customer11
-            Assert.AreEqual("Customer11", results.First().Name);
+            Assert.AreEqual("Customer11", results.First().Name, "The first customer should be Customer11.");
         }
     }
 }

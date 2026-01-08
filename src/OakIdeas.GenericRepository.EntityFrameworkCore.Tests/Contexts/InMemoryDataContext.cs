@@ -1,8 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Contexts
 {
@@ -26,6 +23,21 @@ namespace OakIdeas.GenericRepository.EntityFrameworkCore.Tests.Contexts
 			{
 				optionsBuilder.UseInMemoryDatabase("CustomerDB");
 			}
+		}
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<Customer>()
+				.HasKey(c => c.ID);
+			modelBuilder.Entity<Customer>()
+				.Property(c => c.ID)
+				.ValueGeneratedOnAdd();
+			modelBuilder.Entity<SoftDeletableCustomer>()
+				.HasKey(c => c.ID);
+			modelBuilder.Entity<SoftDeletableCustomer>()
+				.Property(c => c.ID)
+				.ValueGeneratedOnAdd();
+			base.OnModelCreating(modelBuilder);
 		}
 	}
 }
