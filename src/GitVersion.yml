@@ -14,7 +14,7 @@ no-bump-message: '\+semver:\s?none'
 # Branch configuration
 branches:
   main:
-    regex: ^main$
+    regex: ^master$
     mode: ContinuousDeployment
     label: ''
     increment: Patch
