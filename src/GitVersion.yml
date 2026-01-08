@@ -1,42 +1,67 @@
-# GitVersion Configuration
-# This file configures automatic semantic versioning based on git history
-# See: https://gitversion.net/docs/reference/configuration
+# GitVersion configuration
+# GitVersion 6.x compatible configuration
+# This enables automatic semantic versioning based on git history
 
-# Use Mainline mode for automatic version increment on every commit
-mode: Mainline
-next-version: 0.0.6
+mode: ContinuousDeployment
+tag-prefix: 'v'
 
-branches:
-  master:
-    mode: ContinuousDeployment
-    tag: alpha
-    increment: Patch
-    regex: ^master$|^main$
-    is-mainline: true
-  release:
-    mode: ContinuousDeployment
-    tag: ''
-    increment: None
-    regex: ^releases?[/-]v?
-    is-release-branch: true
-  feature:
-    mode: ContinuousDeployment
-    tag: alpha.{BranchName}
-    increment: Inherit
-    regex: ^features?[/-]
-  pull-request:
-    mode: ContinuousDeployment
-    tag: pr.{BranchName}
-    increment: Inherit
-    regex: ^(pull|pull\-requests|pr)[/-]
-
-# Ignore commits with these tags
-commit-message-incrementing: Enabled
+# Commit message patterns for version bumping
 major-version-bump-message: '\+semver:\s?(breaking|major)'
 minor-version-bump-message: '\+semver:\s?(feature|minor)'
 patch-version-bump-message: '\+semver:\s?(fix|patch)'
-no-bump-message: '\+semver:\s?(none|skip)'
+no-bump-message: '\+semver:\s?none'
 
+# Branch configuration
+branches:
+  main:
+    regex: ^main$
+    mode: ContinuousDeployment
+    label: ''
+    increment: Patch
+    track-merge-target: false
+    
+  develop:
+    regex: ^develop(ment)?$
+    mode: ContinuousDeployment
+    label: alpha
+    increment: Minor
+    track-merge-target: false
+    
+  feature:
+    regex: ^features?[/-]
+    mode: ContinuousDeployment
+    label: preview
+    increment: Minor
+    
+  pull-request:
+    regex: ^(pull|pull\-requests|pr)[/-]
+    mode: ContinuousDeployment
+    label: pr
+    increment: Inherit
+    
+  hotfix:
+    regex: ^hotfix(es)?[/-]
+    mode: ContinuousDeployment
+    label: beta
+    increment: Patch
+    
+  release:
+    regex: ^releases?[/-]
+    mode: ContinuousDeployment
+    label: rc
+    increment: None
+
+# Ignore commits by automated tools
 ignore:
   sha: []
 
+# Assembly versioning
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatch
+assembly-informational-format: '{InformationalVersion}'
+
+# Commit message incrementing
+commit-message-incrementing: Enabled
+
+# Merge message formats
+merge-message-formats: {}
