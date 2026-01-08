@@ -32,7 +32,9 @@
   <PackageProjectUrl>https://github.com/oakcool/OakIdeas.GenericRepository</PackageProjectUrl>
   <RepositoryUrl>https://github.com/oakcool/OakIdeas.GenericRepository</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
-  <NeutralLanguage>en-US</NeutralLanguage>    
+  <NeutralLanguage>en-US</NeutralLanguage>
+  <PackageIcon>GenericRepository.png</PackageIcon>
+  <PackageReadmeFile>README.md</PackageReadmeFile>
 
   <!-- Deterministic Build -->
   <Deterministic>true</Deterministic>
@@ -53,7 +55,7 @@
   <!-- Common Package Files for Packable Projects -->
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE" Pack="true" PackagePath="" Visible="false" />    
-    <None Include="$(MSBuildThisFileDirectory)..\Images\GenericRepository.png" Pack="true" PackagePath="Images\" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\Images\GenericRepository.png" Pack="true" PackagePath="" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="" Visible="false" Condition="Exists('$(MSBuildThisFileDirectory)..\README.md')" />
   </ItemGroup>
 

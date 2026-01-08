@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>A very simple and generic implementation of the repository pattern for CRUD operations.</Description>
@@ -12,8 +12,10 @@
 
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors>$(WarningsNotAsErrors);NU1605;SYSLIB0011</WarningsAsErrors>
+    <WarningsAsErrors>$(WarningsNotAsErrors);NU1605;SYSLIB0011</WarningsAsErrors>    
   </PropertyGroup>
+
+ 
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.1" />
