@@ -1,14 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>    
-    <Version>0.0.1.0-alpha</Version>
-    <Description>In-memory implementation of OakIdeas.GenericRepository - suitable for testing and development scenarios.</Description>
-    <PackageTags>repositorypattern, repository, memory, inmemory, testing</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>0.0.1.0</AssemblyVersion>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors>$(WarningsNotAsErrors);NU1605;SYSLIB0011</WarningsAsErrors>
-  </PropertyGroup>
+<PropertyGroup>    
+  <Description>In-memory implementation of OakIdeas.GenericRepository - suitable for testing and development scenarios.</Description>
+  <PackageTags>repositorypattern, repository, memory, inmemory, testing</PackageTags>
+  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  <WarningsAsErrors>$(WarningsNotAsErrors);NU1605;SYSLIB0011</WarningsAsErrors>
+</PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OakIdeas.GenericRepository\OakIdeas.GenericRepository.csproj" />
