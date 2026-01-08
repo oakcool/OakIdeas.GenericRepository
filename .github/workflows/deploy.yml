@@ -47,31 +47,30 @@ jobs:
         useConfigFile: true
         configFilePath: src/GitVersion.yml
 
-    - name: Extract version from tag or input
-      id: version
+    - name: Display GitVersion outputs
       run: |
-        if [ -n "${{ github.event.inputs.version }}" ]; then
-          # Manual workflow dispatch with version input (highest priority)
-          VERSION="${{ github.event.inputs.version }}"
-          echo "? Using manually specified version: $VERSION"
-        elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-          # Tag push - extract version from tag (remove 'v' prefix)
-          VERSION="${GITHUB_REF#refs/tags/v}"
-          echo "? Extracted version from git tag: $VERSION"
-        elif [ -n "${{ steps.gitversion.outputs.semVer }}" ]; then
-          # Use GitVersion calculated version (automatic increment)
-          VERSION="${{ steps.gitversion.outputs.semVer }}"
-          echo "? Using GitVersion calculated version: $VERSION"
-          echo "  - Base Version: ${{ steps.gitversion.outputs.majorMinorPatch }}"
-          echo "  - Pre-release: ${{ steps.gitversion.outputs.preReleaseTag }}"
-          echo "  - Commits since version: ${{ steps.gitversion.outputs.commitsSinceVersionSource }}"
-        else
-          # Fallback to Directory.Build.props
-          echo "? Using version from Directory.Build.props (fallback)"
-          VERSION=""
-        fi
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "?? Final version to use: ${VERSION:-'from Directory.Build.props'}"
+        echo "Major: ${{ steps.gitversion.outputs.major }}"
+        echo "Minor: ${{ steps.gitversion.outputs.minor }}"
+        echo "Patch: ${{ steps.gitversion.outputs.patch }}"
+        echo "PreReleaseTag: ${{ steps.gitversion.outputs.preReleaseTag }}"
+        echo "PreReleaseTagWithDash: ${{ steps.gitversion.outputs.preReleaseTagWithDash }}"
+        echo "PreReleaseLabel: ${{ steps.gitversion.outputs.preReleaseLabel }}"
+        echo "PreReleaseNumber: ${{ steps.gitversion.outputs.preReleaseNumber }}"
+        echo "WeightedPreReleaseNumber: ${{ steps.gitversion.outputs.weightedPreReleaseNumber }}"
+        echo "BuildMetaData: ${{ steps.gitversion.outputs.buildMetaData }}"
+        echo "FullBuildMetaData: ${{ steps.gitversion.outputs.fullBuildMetaData }}"
+        echo "MajorMinorPatch: ${{ steps.gitversion.outputs.majorMinorPatch }}"
+        echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+        echo "AssemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}"
+        echo "AssemblySemFileVer: ${{ steps.gitversion.outputs.assemblySemFileVer }}"
+        echo "FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
+        echo "InformationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}"
+        echo "BranchName: ${{ steps.gitversion.outputs.branchName }}"
+        echo "EscapedBranchName: ${{ steps.gitversion.outputs.escapedBranchName }}"
+        echo "Sha: ${{ steps.gitversion.outputs.sha }}"
+        echo "ShortSha: ${{ steps.gitversion.outputs.shortSha }}"
+        echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.commitsSinceVersionSource }}"
+        echo "CommitDate: ${{ steps.gitversion.outputs.commitDate }}"
 
     - name: Restore dependencies
       run: dotnet restore
