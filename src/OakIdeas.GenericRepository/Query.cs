@@ -53,10 +53,7 @@ public class Query<TEntity> where TEntity : class
     /// <exception cref="ArgumentNullException">Thrown when filter is null</exception>
     public Query<TEntity> Where(Expression<Func<TEntity, bool>> filter)
     {
-        if (filter == null)
-        {
-            throw new ArgumentNullException(nameof(filter));
-        }
+        ArgumentNullException.ThrowIfNull(filter);
 
         Filter = filter;
         return this;
@@ -70,10 +67,7 @@ public class Query<TEntity> where TEntity : class
     /// <exception cref="ArgumentNullException">Thrown when orderBy is null</exception>
     public Query<TEntity> Sort(Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy)
     {
-        if (orderBy == null)
-        {
-            throw new ArgumentNullException(nameof(orderBy));
-        }
+        ArgumentNullException.ThrowIfNull(orderBy);
 
         OrderBy = orderBy;
         return this;
@@ -87,12 +81,9 @@ public class Query<TEntity> where TEntity : class
     /// <exception cref="ArgumentNullException">Thrown when include is null</exception>
     public Query<TEntity> Include(Expression<Func<TEntity, object>> include)
     {
-        if (include == null)
-        {
-            throw new ArgumentNullException(nameof(include));
-        }
+        ArgumentNullException.ThrowIfNull(include);
 
-        Includes ??= new List<Expression<Func<TEntity, object>>>();
+        Includes ??= [];
         Includes.Add(include);
         return this;
     }
