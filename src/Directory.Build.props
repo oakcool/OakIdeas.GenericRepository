@@ -14,7 +14,7 @@
   <!-- Centralized Version Management -->
   <!-- Version can be overridden via command line: dotnet build /p:Version=1.0.0 -->
   <!-- Or via environment variable in CI/CD: VERSION=1.0.0 -->
-  <VersionPrefix Condition="'$(VersionPrefix)' == ''">0.0.6</VersionPrefix>
+  <VersionPrefix Condition="'$(VersionPrefix)' == ''">0.0.7</VersionPrefix>
   <VersionSuffix Condition="'$(VersionSuffix)' == ''">alpha</VersionSuffix>
     
   <!-- Construct the full version -->
